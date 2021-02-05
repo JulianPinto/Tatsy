@@ -1,7 +1,11 @@
+# imports
 import tkinter as tk
-from tk import filedialog, Text
-import os
 
-root = tk.TK()
+win = tk.Tk()
 
-root.mainloop()
+win.title("Tatsy")
+
+win.resizable(False, False)
+
+# main loop
+win.mainloop()
