@@ -1,0 +1,462 @@
+#ifndef _MLINK_MODEM_PROT_H_
+#define _MLINK_MODEM_PROT_H_
+#include "appConfig.h"
+//-----------------------------------------------------------------------------
+/*! \file mLinkModemProt.h
+ * \brief MLink Modem: Host interface protocol definitions.
+ *
+ * Project: MLink
+ * Package: Host Protocol Driver (HPD).
+ *
+ * (c) 2016 Aurora Wireless Networks Inc.
+ *
+ * All information contained herein is, and remains the property of Aurora
+ * Wireless Networks Inc.
+ * The intellectual and technical concepts contained herein are proprietary to
+ * Aurora Wireless Networks Inc.
+ * Use, dissemination, or reproduction of this material is strictly forbidden
+ * unless prior license is granted.
+ */
+//-----------------------------------------------------------------------------
+#ifndef MLINK_DEVICE
+#error "MLINK_DEVICE not defined"
+#endif
+//=============================================================================
+// Notes:
+// 1. All length definitions are in bytes.
+// 2. MLS prefix means "MLink Signal".
+//=============================================================================
+// Message header definitions
+// Length of the START field
+#define MLS_LEN_START 2
+// START field content
+#define MLS_START_BYTE1 0xA0
+#define MLS_START_BYTE2 0xA1
+// Length of the MESSAGE-ID field
+#define MLS_LEN_ID 1
+// Length of the PAYLOAD_LENGTH field
+#define MLS_LEN_LEN 2
+// Header field offsets (relative to the start of the header)
+#define MLS_OFST_START 0
+#define MLS_OFST_LEN (MLS_OFST_START + MLS_LEN_START)
+#define MLS_OFST_ID (MLS_OFST_LEN + MLS_LEN_LEN)
+//-----------------------------------------------------------------------------
+// Message IDs
+#define MLS_ID_ACK 1
+#define MLS_ID_NACK 2
+#define MLS_ID_RADIO_START 10
+#define MLS_ID_RADIO_STOP 11
+#define MLS_ID_RADIO_PAIR 12
+#define MLS_ID_RADIO_ACTIVATE 13
+#define MLS_ID_RADIO_DEACTIVATE 14
+#define MLS_ID_RADIO_POLLSTART 15
+#define MLS_ID_RADIO_POLLSTOP 16
+#define MLS_ID_RADIO_POLLSTATUS 17
+#define MLS_ID_RADIO_POLL 18
+#define MLS_ID_RADIO_DATA 19
+#define MLS_ID_RADIO_TXSTATUS 20
+#define MLS_ID_RADIO_DATAREQ 21
+#define MLS_ID_GPS_START 50
+#define MLS_ID_GPS_STOP 51
+#define MLS_ID_GPS_STATUS 52
+#define MLS_ID_GPS_DATA 53
+#define MLS_ID_GPS_SLEEP 54
+#define MLS_ID_DEVICE_START 100
+#define MLS_ID_DEVICE_BATTLEVEL 101
+#define MLS_ID_DEVICE_FSMSTATE 102
+#define MLS_ID_DEVICE_RESET 103
+
+#if (MLINK_MODE == MODE_LINKADAPTPER)
+#define MLS_ID_DEBUG_FES 150
+#endif
+//=============================================================================
+// Message payload definitions
+//-----------------------------------------------------------------------------
+// Message payload lengths
+// This message is variable length. This is the minimum size.
+#define MLS_LEN_ACK 1
+#define MLS_LEN_NACK 2
+#if (MLINK_DEVICE == DEVICE_BASE) 
+#define MLS_LEN_RADIO_START_REQ 2
+#define MLS_LEN_RADIO_START_IND 5
+#define MLS_LEN_RADIO_STOP_REQ 1
+#define MLS_LEN_RADIO_STOP_IND 1
+#define MLS_LEN_RADIO_PAIR_REQ 0
+#define MLS_LEN_RADIO_PAIR_IND 1
+#define MLS_LEN_RADIO_ACTIVATE_IND 7
+#define MLS_LEN_RADIO_DEACTIVATE_REQ 2
+#define MLS_LEN_RADIO_DEACTIVATE_IND 2
+#define MLS_LEN_RADIO_POLLSTART_REQ 7
+#define MLS_LEN_RADIO_POLLSTOP_REQ 1
+#define MLS_LEN_RADIO_POLLSTATUS_IND 2
+#define MLS_LEN_RADIO_POLL_IND 1
+#define MLS_LEN_RADIO_TXSTATUS_IND 3
+// These messages are variable length.
+#define MLS_LEN_RADIO_POLLSTATUS_REQ_MIN 0
+#define MLS_LEN_RADIO_POLLSTATUS_REQ_MAX 1
+#define MLS_LEN_RADIO_DATA_REQ 2
+#define MLS_LEN_RADIO_DATA_IND 2
+#define MLS_LEN_RADIO_DATA_CONTENT_MIN 1
+#define MLS_LEN_RADIO_DATA_CONTENT_MAX 256
+//--------------------------------------------
+#else //(MLINK_DEVICE == DEVICE_END_POINT)
+#define MLS_LEN_RADIO_START_REQ_MIN 3
+#define MLS_LEN_RADIO_START_REQ_MAX 4
+#define MLS_LEN_RADIO_START_IND 5
+#define MLS_LEN_RADIO_STOP_REQ 1
+#define MLS_LEN_RADIO_STOP_IND 1
+#define MLS_LEN_RADIO_PAIR_REQ 0
+#define MLS_LEN_RADIO_PAIR_IND 1
+#define MLS_LEN_RADIO_ACTIVATE_IND 1
+#define MLS_LEN_RADIO_DEACTIVATE_IND 1
+#define MLS_LEN_RADIO_TXSTATUS_IND 3
+// These messages are variable length.
+#define MLS_LEN_RADIO_POLLSTATUS_IND_MIN 1
+#define MLS_LEN_RADIO_POLLSTATUS_IND_MAX 1
+#define MLS_LEN_RADIO_DATA_REQ 5
+#define MLS_LEN_RADIO_DATA_IND 1
+#define MLS_LEN_RADIO_DATA_CONTENT_MIN 1
+#define MLS_LEN_RADIO_DATA_CONTENT_MAX 256
+#endif // (MLINK_DEVICE)
+//--------------------------------------------
+// For both BASE and ENDPOINT
+#define MLS_LEN_GPS_START_REQ 2
+#define MLS_LEN_GPS_STOP_REQ 0
+#define MLS_LEN_GPS_STATUS_IND 1
+#define MLS_LEN_GPS_DATA_IND 19
+#define MLS_LEN_GPS_SLEEP_REQ 0
+#define MLS_LEN_DEVICE_START_IND 11
+#define MLS_LEN_DEVICE_RESET_IND 17
+#define MLS_LEN_DEVICE_BATT_LEVEL_REQ 0
+#define MLS_LEN_DEVICE_RESET_REQ 0
+
+#if (MLINK_MODE == MODE_LINKADAPTPER)
+#define MLS_LEN_DEBUG_FES_REQ 1
+#endif
+//-----------------------------------------------------------------------------
+// Message field lengths (in bytes)
+// For fields > 1 byte in length.
+#if (MLINK_DEVICE == DEVICE_BASE) 
+#define MLS_LEN_RADIO_POLLSTART_POLLINT 4
+#else //(MLINK_DEVICE == DEVICE_END_POINT)
+#endif // (MLINK_DEVICE)
+//--------------------------------------------
+// For both BASE and ENDPOINT
+#define MLS_LEN_RADIO_START_ID 4
+#define MLS_LEN_GPS_START_INTERVAL 2
+//-----------------------------------------------------------------------------
+// Message payload field offsets (relative to the start of the payload)
+//--------------------------------------------
+#if (MLINK_DEVICE == DEVICE_BASE)
+#define MLS_OFST_RADIO_START_HOPID 0
+#define MLS_OFST_RADIO_START_NETWORKSIZE 1
+#define MLS_OFST_RADIO_PAIR_OUTCOME 0
+#define MLS_OFST_RADIO_DEACTIVATE_EPADDR 0
+#define MLS_OFST_RADIO_DEACTIVATE_FLAGS 1
+#define MLS_OFST_RADIO_POLLSTART_EPADDR 0
+#define MLS_OFST_RADIO_POLLSTART_MESSAGE 1
+#define MLS_OFST_RADIO_POLLSTART_PRIORITY 2
+#define MLS_OFST_RADIO_POLLSTART_POLLINT 3
+#define MLS_OFST_RADIO_POLLSTOP_HANDLE 0
+#define MLS_OFST_RADIO_DATA_EPADDR 0
+#define MLS_OFST_RADIO_DATA_FLAGS 1
+#define MLS_OFST_RADIO_DATA_MESSAGE 2
+#define MLS_OFST_RADIO_ACTIVATE_EPID 0
+#define MLS_OFST_RADIO_ACTIVATE_OUTCOME 4
+#define MLS_OFST_RADIO_ACTIVATE_RSSI 5
+#define MLS_OFST_RADIO_ACTIVATE_EPADDR 6
+#define MLS_OFST_RADIO_DEACTIVATE_EPADDR 0
+#define MLS_OFST_RADIO_DEACTIVATE_REASON 1
+#define MLS_OFST_RADIO_POLLSTATUS_HANDLE 0
+#define MLS_OFST_RADIO_POLLSTATUS_STATUS 1
+#define MLS_OFST_RADIO_POLL_EPADDR 0
+#define MLS_OFST_RADIO_DATA_RSSI 1
+//--------------------------------------------
+#else //(MLINK_DEVICE == DEVICE_END_POINT)
+#define MLS_OFST_RADIO_START_FLAGS 0
+#define MLS_OFST_RADIO_START_POLLOFST 1
+#define MLS_OFST_RADIO_START_POLLMASK 2
+#define MLS_OFST_RADIO_START_HOPID 3
+#define MLS_OFST_RADIO_DATA_FLAGS 0
+#define MLS_OFST_RADIO_DATA_TMO 1
+#define MLS_OFST_RADIO_DATA_MESSAGE 1
+#define MLS_OFST_RADIO_PAIR_OUTCOME 0
+#define MLS_OFST_RADIO_ACTIVATE_OUTCOME 0
+#define MLS_OFST_RADIO_DEACTIVATE_REASON 0
+#define MLS_OFST_RADIO_DATA_RSSI 0
+#endif // (MLINK_DEVICE)
+//--------------------------------------------
+// For both BASE and ENDPOINT
+#define MLS_OFST_ACK_ACKID 0
+#define MLS_OFST_ACK_INFO 1
+#define MLS_OFST_NACK_ACKID 0
+#define MLS_OFST_NACK_REASON 1
+#define MLS_OFST_RADIO_START_OUTCOME 0
+#define MLS_OFST_RADIO_START_ID 1
+#define MLS_OFST_RADIO_STOP_FLAGS 0
+#define MLS_OFST_RADIO_STOP_REASON 0
+#define MLS_OFST_RADIO_POLLSTATUS_MESSAGE 0
+#define MLS_OFST_RADIO_TXSTATUS_HANDLE 0
+#define MLS_OFST_RADIO_TXSTATUS_OUTCOME 1 
+#define MLS_OFST_RADIO_TXSTATUS_RSSI 2
+#define MLS_OFST_GPS_START_INTERVAL 0
+#define MLS_OFST_GPS_STATUS_STATUS 0
+#define MLS_OFST_GPS_DATA_WEEK 0
+#define MLS_OFST_GPS_DATA_TIMEOFWEEK 2
+#define MLS_OFST_GPS_DATA_FIXMODE 6
+#define MLS_OFST_GPS_DATA_LATITUDE 7
+#define MLS_OFST_GPS_DATA_LONGITUDE 11
+#define MLS_OFST_GPS_DATA_ALTITUDE 15
+// deviceFlags[info] = 0 or 1
+#define MLS_OFST_DEVICE_START_FLAGS 0
+#define MLS_OFST_DEVICE_START_HWREV 1
+#define MLS_OFST_DEVICE_START_HWFAULT 2
+#define MLS_OFST_DEVICE_START_FWMAJORREV 4
+#define MLS_OFST_DEVICE_START_FWMINORREV 6
+#define MLS_OFST_DEVICE_START_FWFLAGS 8
+#define MLS_OFST_DEVICE_START_REGION 10
+// deviceFlags[info] = 1
+#define MLS_OFST_DEVICE_START_MODULE 11
+#define MLS_OFST_DEVICE_START_LINENUMBER 12
+#define MLS_OFST_DEVICE_START_P1 14
+#define MLS_OFST_DEVICE_START_P2 15
+#define MLS_OFST_DEVICE_START_P3 16
+//-----------------------------------------------------------------------------
+// Message payload field lengths
+//--------------------------------------------
+#if (MLINK_DEVICE == DEVICE_BASE)
+#define MLS_LEN_RADIO_ACTIVATE_EPID 4
+//--------------------------------------------
+#else //(MLINK_DEVICE == DEVICE_END_POINT)
+#define MLS_LEN_RADIO_DATA_TMO 4
+#endif // (MLINK_DEVICE)
+//--------------------------------------------
+// For both BASE and ENDPOINT
+#define MLS_LEN_ACK_INFO 1
+#define MLS_LEN_RADIO_START_ID 4
+#define MLS_LEN_GPS_START_INTERVAL 2
+#define MLS_LEN_GPS_DATA_WEEK 2
+#define MLS_LEN_GPS_DATA_TIMEOFWEEK 4
+#define MLS_LEN_GPS_DATA_LATITUDE 4
+#define MLS_LEN_GPS_DATA_LONGITUDE 4
+#define MLS_LEN_GPS_DATA_ALTITUDE 4
+#define MLS_LEN_DEVICE_START_FWMAJORREV 2
+#define MLS_LEN_DEVICE_START_FWMINORREV 2
+#define MLS_LEN_DEVICE_START_FWFLAGS 2
+#define MLS_LEN_DEVICE_START_HWFAULT 2
+#define MLS_LEN_DEVICE_START_LINENUMBER 2
+//-----------------------------------------------------------------------------
+// Message payload field content definitions
+#define MLS_RADIO_POLL_START_MESSAGE_WILDCARD 0xFF
+//-----------------------------------------------
+#if (MLINK_DEVICE == DEVICE_BASE)
+// Radio:StartReq hop-id
+#define MLS_RADIO_START_REQ_HOP_ID_DFLT 255
+// Radio:StartReq network-size
+#define MLS_RADIO_START_NETWORKSIZE_DFLT 0 
+#define MLS_RADIO_START_NETWORKSIZE_DEBUG 0x80
+// Radio:StopReq flags
+#define MLS_RADIO_STOP_FLAG_CLEAR 0x01
+// Radio:DeactivateReq flags
+#define MLS_RADIO_DEACTIVATE_FLAG_NOIGNORE 0x01
+#define MLS_RADIO_DEACTIVATE_FLAG_FORCE 0x02
+// Radio:PollStartReq priority
+#define MLS_RADIO_POLL_START_PRIORITY_NORMAL 0
+#define MLS_RADIO_POLL_START_PRIORITY_URGENT 1
+#define MLS_RADIO_POLL_START_NUM_PRIORITIES 2
+// Radio:DataReq flags
+#define MLS_RADIO_DATA_FLAG_NOSEGMENT 0x01
+// Radio:ActivateInd outcome
+#define MLS_RADIO_ACTIVATE_OUTCOME_SUCCESS 0
+#define MLS_RADIO_ACTIVATE_OUTCOME_NOTPAIRED 1
+#define MLS_RADIO_ACTIVATE_OUTCOME_RVSD2 2
+#define MLS_RADIO_ACTIVATE_OUTCOME_RSVD3 3
+#define MLS_RADIO_ACTIVATE_OUTCOME_PAIRLISTFULL 4
+#define MLS_RADIO_ACTIVATE_OUTCOME_NETWORKFULL 5
+#define MLS_RADIO_ACTIVATE_OUTCOME_RSVD6 6
+#define MLS_RADIO_ACTIVATE_OUTCOME_RSVD7 7
+#define MLS_RADIO_ACTIVATE_OUTCOME_RSVD8 8
+#define MLS_RADIO_ACTIVATE_OUTCOME_IGNORED 9
+#define MLS_RADIO_ACTIVATE_OUTCOME_CONFIRMFAIL 10
+#define MLS_RADIO_ACTIVATE_OUTCOME_TXFAIL 11
+#define MLS_RADIO_ACTIVATE_OUTCOME_STARTED 12
+#define MLS_RADIO_ACTIVATE_NUM_OUTCOMES 13
+// Radio:ActivateInd epAddr
+#define MLS_RADIO_ACTIVATE_EPADDR_NONE 255
+// Radio:DeactivateInd reason
+#define MLS_RADIO_DEACTIVATE_REASON_INACTIVITY 0
+#define MLS_RADIO_DEACTIVATE_REASON_COMPLETE 1
+#define MLS_RADIO_DEACTIVATE_REASON_NOTFOUND 2
+#define MLS_RADIO_DEACTIVATE_REASON_FAIL 3
+#define MLS_RADIO_DEACTIVATE_REASON_LISTFULL 4
+#define MLS_RADIO_DEACTIVATE_REASON_FORCED 5
+#define MLS_RADIO_DEACTIVATE_NUM_REASONS 6
+// Radio:PollStatusInd status
+#define MLS_RADIO_POLL_STATUS_STATUS_STARTED 0
+#define MLS_RADIO_POLL_STATUS_STATUS_STOPPED 1
+#define MLS_RADIO_POLL_STATUS_STATUS_BADPARAM 2
+#define MLS_RADIO_POLL_STATUS_STATUS_LISTFULL 3
+#define MLS_RADIO_POLL_STATUS_STATUS_NOTFOUND 4
+#define MLS_RADIO_POLL_STATUS_STATUS_RSVD5 5
+#define MLS_RADIO_POLL_STATUS_STATUS_FAIL 6
+#define MLS_RADIO_POLL_STATUS_STATUS_NODATA 7
+#define MLS_RADIO_POLL_STATUS_STATUS_NOMEMORY 8
+#define MLS_RADIO_POLL_STATUS_STATUS_COMPLETE 9
+#define MLS_RADIO_POLL_STATUS_STATUS_RSVD10 10
+#define MLS_RADIO_POLL_STATUS_NUM_STATUS 11
+//-------------------------------------------------
+#else //(MLINK_DEVICE == DEVICE_END_POINT)
+// Radio:StartReq flags
+#define MLS_RADIO_START_FLAG_MODE 0x01
+#define MLS_RADIO_START_FLAG_HOPID 0x02
+#define MLS_RADIO_START_FLAG_DEBUG 0x80
+// Radio:DataReq flags
+#define MLS_RADIO_DATA_FLAG_DEMANDPOLL 0x01 
+// Radio:DeactivateInd reason
+#define MLS_RADIO_DEACTIVATE_REASON_INACTIVITY 0
+#define MLS_RADIO_DEACTIVATE_REASON_REJECTED 1
+#define MLS_RADIO_DEACTIVATE_NUM_REASONS 2
+#endif // (MLINK_DEVICE)
+//-----------------------------------------------
+// For both BASE and END_POINT
+// Link:NAK reason
+#define MLS_REASON_SUCCESS 0
+#define MLS_REASON_UNKNOWNSIGNALID 1
+#define MLS_REASON_CHECKSUMERROR 2
+#define MLS_REASON_INVALIDLENGTH 3
+#define MLS_REASON_NOMEMORY 4
+#define MLS_REASON_LISTFULL 5
+#define MLS_REASON_BADCHAR 6
+#define MLS_REASON_TIMEOUT 7
+#define MLS_REASON_OVERRUN 10
+#define MLS_REASON_PARITY 11
+#define MLS_REASON_FRAMING 12
+#define MLS_REASON_EOMDETECTED 13
+#define MLS_REASON_BREAKDETECTED 14
+#define MLS_NUM_REASONS 255
+// Radio:StartInd outcome
+#define MLS_RADIO_START_OUTCOME_SUCCESS 0
+#define MLS_RADIO_START_OUTCOME_FAILINTERNAL 1
+#define MLS_RADIO_START_OUTCOME_NOTPAIRED 2
+#define MLS_RADIO_START_OUTCOME_MODEINVALID 3
+#define MLS_RADIO_START_OUTCOME_REJECTED 4
+#define MLS_RADIO_START_OUTCOME_INVALIDPARAM 5
+#define MLS_RADIO_START_NUM_OUTCOMES 6
+// Radio:StopInd reason
+#define MLS_RADIO_STOP_REASON_CLIENT 0
+#define MLS_RADIO_STOP_REASON_POWERREMOVED 1
+#define MLS_RADIO_STOP_REASON_SYNCFAIL 2
+#define MLS_RADIO_STOP_REASON_PAIRFAIL 3
+#define MLS_RADIO_STOP_NUM_REASONS 4
+// Radio:PairInd outcome
+#if (MLINK_DEVICE == DEVICE_BASE)
+#define MLS_RADIO_PAIR_OUTCOME_STARTED 0
+#define MLS_RADIO_PAIR_OUTCOME_COMPLETE 1
+#define MLS_RADIO_PAIR_OUTCOME_REJECTED 2
+#define MLS_RADIO_PAIR_NUM_OUTCOMES 3
+#else //(MLINK_DEVICE == DEVICE_END_POINT)
+#define MLS_RADIO_PAIR_OUTCOME_SUCCESS 0
+#define MLS_RADIO_PAIR_OUTCOME_NOTPAIRED 1
+#define MLS_RADIO_PAIR_OUTCOME_RSVD2 2
+#define MLS_RADIO_PAIR_OUTCOME_NORESPONSE 3
+#define MLS_RADIO_PAIR_OUTCOME_LISTFULL 4
+#define MLS_RADIO_PAIR_OUTCOME_NETWORKFULL 5
+#define MLS_RADIO_PAIR_OUTCOME_SYNCFAIL 6
+#define MLS_RADIO_PAIR_OUTCOME_NETWORKENTRY 7
+#define MLS_RADIO_PAIR_OUTCOME_ABORTED 8
+#define MLS_RADIO_PAIR_NUM_OUTCOMES 9
+// Radio:ActivateInd outcome
+#define MLS_RADIO_ACTIVATE_OUTCOME_SUCCESS 0
+#define MLS_RADIO_ACTIVATE_NUM_OUTCOMES 1
+#endif // (MLINK_DEVICE)
+// Radio:TxStatusInd outcome 
+#define MLS_RADIO_TXSTATUS_OUTCOME_SUCCESS 0
+#define MLS_RADIO_TXSTATUS_OUTCOME_MAXTRIES 1
+#define MLS_RADIO_TXSTATUS_OUTCOME_RSVD2 2
+#define MLS_RADIO_TXSTATUS_OUTCOME_RSVD3 3
+#define MLS_RADIO_TXSTATUS_OUTCOME_QUEUEFULL 4
+#define MLS_RADIO_TXSTATUS_OUTCOME_NOTFOUND 5
+#define MLS_RADIO_TXSTATUS_OUTCOME_RSVD6 6
+#define MLS_RADIO_TXSTATUS_OUTCOME_SEGMENTATION 7
+#define MLS_RADIO_TXSTATUS_OUTCOME_RSVD8 8
+#define MLS_RADIO_TXSTATUS_OUTCOME_TIMEOUT 9
+#define MLS_RADIO_TXSTATUS_NUM_OUTCOMES 10
+// GPS:StatusInd status
+#define MLS_GPS_STATUS_STATUS_STARTED 0
+#define MLS_GPS_STATUS_STATUS_STOPPED 1
+#define MLS_GPS_STATUS_STATUS_SLEEP 2
+#define MLS_GPS_STATUS_STATUS_NOPOWER 3
+#define MLS_GPS_STATUS_STATUS_FAIL 4
+#define MLS_GPS_STATUS_NUM_STATUS 5
+// GPS:DataInd fixMode
+#define MLS_GPS_DATA_FIXMODE_NONE 0
+#define MLS_GPS_DATA_FIXMODE_2D 1
+#define MLS_GPS_DATA_FIXMODE_3D 2
+#define MLS_GPS_DATA_NUM_FIXMODES 3
+// DEVICE:START deviceFlags
+#define MLS_DEVICE_START_FLAG_TYPE 0x01
+#define MLS_DEVICE_START_FLAG_INFO 0x02
+//=============================================================================
+// Message trailer definitions
+// Length of the CHECKSUM field
+#define MLS_LEN_CKSUM 2
+// The MSB of the CHECKSUM is masked off to avoid aliasing with the
+// START and END fields
+#define MLS_CKSUM_MASK 0x7FFF
+// Length of the END field
+#define MLS_LEN_END 2
+// END field content
+#define MLS_END_BYTE1 0xB0
+#define MLS_END_BYTE2 0xB1
+//=============================================================================
+// Other definitions
+#define MLS_MAX_SEND_RETRIES 3
+#define MLS_ID_DEBUG_LINKADAPT 200
+#define MLS_ID_DEBUG_LINKCHANGE 201
+#define MLS_ID_DEBUG_TRAFFICSTATUS 202
+#define MLS_ID_DEBUG_POLLLIST 203
+#define MLS_ID_DEBUG_RADIOSTATUS 204
+#define MLS_ID_DEBUG_INFO 205
+#if (MLINK_DEVICE == DEVICE_BASE)
+#define MLS_LEN_DEBUG_LINKADAPT_IND 4
+#define MLS_LEN_DEBUG_LINKCHANGE_IND 4
+#define MLS_OFST_DEBUG_LINKADAPT_EPADDR 0
+#define MLS_OFST_DEBUG_LINKADAPT_TXLEVEL 1
+#define MLS_OFST_DEBUG_LINKADAPT_DATARATE 2
+#define MLS_OFST_DEBUG_LINKADAPT_FLAGS 3
+#define MLS_OFST_DEBUG_LINKCHANGE_EPADDR 0
+#define MLS_OFST_DEBUG_LINKCHANGE_BASELINKMARGIN 1
+#define MLS_OFST_DEBUG_LINKCHANGE_EPLINKMARGIN 2
+#define MLS_OFST_DEBUG_LINKCHANGE_FLAGS 3
+#define MLS_OFST_DEBUG_INFO_RADIOCFG0 0
+#define MLS_OFST_DEBUG_INFO_PACKETLENMAX 1
+#define MLS_OFST_DEBUG_INFO_PACKETLENRX 2
+#define MLS_OFST_DEBUG_INFO_RPSCONTROLSTATE 3
+#define MLS_OFST_DEBUG_INFO_RADIORECEIVESTATE 4
+#define MLS_LEN_DEBUG_INFO 5
+#else // DEVICE_END_POINT
+#define MLS_LEN_DEBUG_LINKCHANGE_IND 2
+#define MLS_LEN_DEBUG_LINKADAPT_IND 2
+#define MLS_LEN_DEBUG_TRAFFICSTATUS_IND 1
+#define MLS_OFST_DEBUG_LINKADAPT_TXLEVEL 0
+#define MLS_OFST_DEBUG_LINKADAPT_DATARATE 1
+#define MLS_OFST_DEBUG_LINKCHANGE_EPLINKMARGIN 0
+#define MLS_OFST_DEBUG_LINKCHANGE_FLAGS 1
+#define MLS_OFST_DEBUG_TRAFFICSTATUS_RXFAILREASON 0
+#endif // MLINK_DEVICE
+#define MLS_LEN_DEBUG_RADIOSTATUS_IND 5
+#define MLS_LEN_DEBUG_RADIOSTATUS_RSSIDETECTTHRESH 2
+#define MLS_LEN_DEBUG_RADIOSTATUS_RSSIMIN 2
+#define MLS_OFST_DEBUG_RADIOSTATUS_RSSIDETECTTHRESH 0
+#define MLS_OFST_DEBUG_RADIOSTATUS_RSSIMIN 2
+#define MLS_OFST_DEBUG_RADIOSTATUS_RXFAILSTATUS 4
+#define MLS_OFST_DEBUG_INFO_TYPE 0
+#define MLS_DEBUG_INFO_TYPE_RADIORESET 0
+#define MLS_LEN_DEBUG_INFO_RADIORESET 2
+#define MLS_LEN_DEBUG_INFO_MIN 1
+#define MLS_LEN_DEBUG_INFO_MAX 10
+
+#if (MLINK_MODE == MODE_LINKADAPTPER)
+#define MLS_OFST_RADIO_DEBUG_FES_FES 0
+#endif
+#endif //_MLINK_MODEM_PROT_H_ 
