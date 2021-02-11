@@ -13,29 +13,29 @@ using namespace std;
 #define SPEED_MULTIPLIER 100
 
 // function definitions
-void motorMovementMessage(float leftPower, float rightPower);
+void motorMovementMessage(float power);
 uint8_t motorSpeedMessageConverter(float speed);
 uint16_t calculateCheckSum(uint8_t* message_ptr, uint8_t messageOffset, uint8_t length);
 void sendMessage(uint8_t* message, uint8_t messageLength);
 bool checkAck(uint8_t* message, uint8_t* ackMessage);
 uint8_t createAckMessage(uint8_t* message);
 
-void motorMovementMessage(float leftPower, float rightPower) {
+void motorMovementMessage(float power) {
 	uint8_t * message = new uint8_t[12];
 	message[0] = 0xA0; // message start
 	message[1] = 0xA1; // message start
 	message[2] = 0x00; // message length
 	message[3] = 0x02; // mesage length
 	message[4] = 0x11; // poll status
-	message[5] = motorSpeedMessageConverter(leftPower); // left motor speed
-	message[6] = motorSpeedMessageConverter(rightPower); // right motor speed
+	message[5] = motorSpeedMessageConverter(power); // left motor speed
+	// message[6] = motorSpeedMessageConverter(rightPower); // right motor speed
 	uint16_t checksum = calculateCheckSum(message, 4, 3);
-	message[7] = checksum >> 8;
-	message[8] = checksum;
-	message[9] = 0xB0;
-	message[10] = 0xB1;
+	message[6] = checksum >> 8;
+	message[7] = checksum;
+	message[8] = 0xB0;
+	message[90] = 0xB1;
 
-	sendMessage(message, 11);
+	sendMessage(message, 10);
 }
 
 // controller settings will give speeds from -1 to 1 
