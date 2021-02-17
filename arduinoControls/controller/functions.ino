@@ -28,7 +28,8 @@ void recvWithStartEndMarkers() {
         ndx = 0;
         newData = true;
         //converts string to joystick value
-        joystickVal = atoi(receivedChars);
+        //joystickVal = atoi(receivedChars);
+        
       }
     }
 
@@ -39,14 +40,14 @@ void recvWithStartEndMarkers() {
 }
 
 
-//send data
-void sendWithStartEndMarkers() {
-  char sc; //sent character
-
-  if (recvInProgress == true) {
-    
-  }
-}
+////send data
+//void sendWithStartEndMarkers() {
+//  char sc; //sent character
+//
+//  if (recvInProgress == true) {
+//    
+//  }
+//}
 
 
 

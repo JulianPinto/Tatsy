@@ -19,26 +19,25 @@ boolean newData = false;
 boolean recvInProgress = false; //whether or not data is being recieved
 
 //motor setup
-int IN1 = 2;  //right motors
-int IN2 = 4;
-int ENA = 5;
-int IN3 = 8;  //left motors
-int IN4 = 9;
-int ENB = 3;
-
+#define ENA 10
+#define ENB 5
+#define IN1 9
+#define IN2 8
+#define IN3 7
+#define IN4 6
 
 void setup() {
   //connect and flush serial port
-  Serial.begin(19200);
+  Serial.begin(57600);
   Serial.flush();
 
   //initiallizing motor pins
-  pinMode(IN1, OUTPUT);
-  pinMode(IN3, OUTPUT);
-  pinMode(IN2, OUTPUT);
-  pinMode(IN4, OUTPUT);
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
 }
 
 void loop() {
