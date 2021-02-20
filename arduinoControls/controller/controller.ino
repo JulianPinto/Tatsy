@@ -1,18 +1,24 @@
+//Servo Library
 #include <Servo.h>
+//MLink Serial Library
+#include <AltSoftSerial.h>
+
+/*----------------------------------------- MLink Setup -------------------------*/
+#define RESET     0x69
+#define START     0x0A
+#define ACTIVATE  0x0D
+#define STOP      0x0B
+#define DATA      0x14
+#define ERROR     0x02
+
+
+
+/*----------------------------------------- Servo Setup -------------------------*/
 //pulse widths for esc in milliseconds
 const int min_pw = 1000;
 const int max_pw = 2000;
 int ESC_val;
 
-//joystick range;
-const int min_joy = 0;
-const int max_joy = 1023;
-int joystickVal;
-
-//data recieving
-const byte numChars = 32;
-char receivedChars[numChars];//chars received
-char sentChars[numChars];//chars sent
 
 //data sending
 boolean newData = false;

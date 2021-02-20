@@ -1,4 +1,35 @@
-/*----------------------------------------- Data transfer functions -------------------------*/
+/*----------------------------------------- MLink functions -------------------------*/
+// Reset
+void resetIndication (uint8_t flags,
+                      uint8_t hwRev,
+                      uint16_t hwFault,
+                      uint16_t fwMajorRev,
+                      uint16_t fwMinorRev,
+                      uint16_t fwFlags,
+                      uint8_t region);
+
+// Start
+void startIndication (uint8_t outcome,
+                      uint32_t serial);
+void activateIndication ();
+
+// Stop
+void stopIndication (uint8_t reason);
+
+// Data
+void transmitStatusIndication (uint8_t handle,
+                               uint8_t outcome,
+                               int8_t rssi);
+
+// Error Checking
+void errorIndication (uint8_t ackId,
+                      uint8_t reason);
+
+// Acknowledgment
+void acknowledgeMessage(uint8_t messageId);
+
+
+/*----------------------------------------- Data Receive -------------------------*/
 //receiving joystick data
 void recvWithStartEndMarkers() {
   static byte ndx = 0; //current index
@@ -38,16 +69,6 @@ void recvWithStartEndMarkers() {
     }
   }
 }
-
-
-////send data
-//void sendWithStartEndMarkers() {
-//  char sc; //sent character
-//
-//  if (recvInProgress == true) {
-//    
-//  }
-//}
 
 
 
