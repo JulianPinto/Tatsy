@@ -4,8 +4,6 @@
 #include <math.h>
 #include <cstdint>
 
-#include "mLinkModemProt.h"
-
 using namespace std;
 
 // define section

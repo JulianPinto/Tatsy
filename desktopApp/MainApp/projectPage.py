@@ -45,12 +45,13 @@ class projectPage:
             padx=4, pady=4, justify=CENTER)
 
         # display data
-        self.infoText.insert(1, "Date: Jan8, 2021")
+        self.infoText.insert(1, "Date: Jan 8, 2021")
         self.infoText.insert(2, "Project: TestProj")
         self.infoText.insert(3, "Distance: 123cm")
         self.infoText.insert(4, "Duration: 12:32")
+        self.infoText.insert(5, "Controls: F-23")
 
-        self.notesArea.insert(INSERT, "Notes on current inspection\n cracking at 45cm to 50cm top side\n")
+        self.notesArea.insert(INSERT, "\n\nNotes on current inspection\n\ncracking at 45cm to 50cm top side\n\npotential break at 60cm\n\nsome build up at 70cm\n\nunknown object stuck at 100cm\n\nmold at 110cm\n")
 
         # packing to window
         self.notesArea.place(relheight=0.96, relwidth=0.3, relx=0.02, rely=0.02)
