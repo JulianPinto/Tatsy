@@ -154,7 +154,7 @@ void sendStart()
   {
     // Please review the user manual for information 
     // on startRequest parameters
-    mlink.startRequest(0x02, 0x00, 0x00, 0x17);
+    mlink.startRequest(0x00, 0x00, 0x00, 0xFF);
     hasStarted = true;
     Serial.println("reset and started");
   }
