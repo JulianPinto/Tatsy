@@ -77,8 +77,8 @@ void recv_position() {
   static uint8_t rc; //received character
   static uint8_t received_data[11];
   // if ther'es a serial connection and a dataset isn't currently being sent
-  while (Serial.available() > 0 && newData == false) {
-    rc = Serial.read();
+  while (mlink.available() > 0 && newData == false) {
+    rc = mlink.read();
 
     //if data is being received
     if (recvInProgress == true) {

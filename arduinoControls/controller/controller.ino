@@ -74,7 +74,7 @@ boolean newData = false;
 boolean recvInProgress = false; //whether or not data is being recieved
 
 /*----------------------------------------- LED Setup -------------------------*/
-const uint8_t ledPin = 13;
+const uint8_t ledPin = 12;
 uint8_t ledState = LOW;
 
 /*----------------------------------------- Servo Setup -------------------------*/
@@ -89,9 +89,9 @@ boolean dir;
 //motor setup
 #define ENA 10
 #define ENB 5
-#define IN1 9
-#define IN2 8
-#define IN3 7
+#define IN1 3
+#define IN2 4
+#define IN3 5
 #define IN4 6
 
 void setup() {
