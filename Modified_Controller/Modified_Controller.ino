@@ -156,7 +156,6 @@ void loop() {
   currentMillis = millis();
   sendStart();
   recvData();
-  getSpeed();
 }
 
 
@@ -216,37 +215,40 @@ void sendStart()
 }
 
 void recvData() {
-  static boolean recvInProgress = false;
-  static byte ndx = 0;
-  uint8_t startMarker = 0xA0;
-  uint8_t endMarker = 0xB1;
-  char rc;
+//  static boolean recvInProgress = false;
+//  static byte ndx = 0;
+//  uint8_t startMarker = 0xA0;
+//  uint8_t endMarker = 0xB1;
+//  char rc;
+//
+//  if (currentMillis - previousMillisData >= intervalData) {
+//    while (mlink.available() > 0 && newData == false) {
+//      rc = mlink.read();
+//
+//      if (recvInProgress == true) {
+//        if (rc != endMarker) {
+//          receivedBytes[ndx] = rc;
+//          ndx++;
+//          if (ndx >= numBytes) {
+//            ndx = numBytes - 1;
+//          }
+//        }
+//        else {
+//          receivedBytes[ndx] = rc; // terminate the string
+//          recvInProgress = false;
+//          ndx = 0;
+//          newData = true;
+//        }
+//      }
+//
+//      else if (rc == startMarker) {
+//        recvInProgress = true;
+//      }
+//    }
+//  }
+//  getSpeed();
 
-  if (currentMillis - previousMillisData >= intervalData) {
-    while (mlink.available() > 0 && newData == false) {
-      rc = mlink.read();
 
-      if (recvInProgress == true) {
-        if (rc != endMarker) {
-          receivedBytes[ndx] = rc;
-          ndx++;
-          if (ndx >= numBytes) {
-            ndx = numBytes - 1;
-          }
-        }
-        else {
-          receivedBytes[ndx] = rc; // terminate the string
-          recvInProgress = false;
-          ndx = 0;
-          newData = true;
-        }
-      }
-
-      else if (rc == startMarker) {
-        recvInProgress = true;
-      }
-    }
-  }
 }
 
 void getSpeed(){
