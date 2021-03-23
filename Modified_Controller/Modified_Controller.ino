@@ -127,7 +127,7 @@ void acknowledgeMessage (uint8_t messageId)
 int motor_speed;
 
 //data receive stuff
-const byte numBytes = 11;
+const byte numBytes = 16;
 char receivedBytes[numBytes];
 boolean newData = false;
 
@@ -136,6 +136,7 @@ void setup()
 {
   Serial.begin(57600);
   mlink.begin (57600);
+  mlink.flushInput();
   pinMode(ledPin, OUTPUT);
   mlink.resetRequest(); // resetting MLink
   Serial.println("                ");
@@ -207,67 +208,78 @@ void sendStart()
     // on startRequest parameters
     mlink.startRequest(0x00, 0x00, 0x00, 0xFF);
     hasStarted = true;
-    Serial.println("reset and started");
   }
   else {
-    Serial.println("Not reset");
   }
 }
 
 void recvData() {
-//  static boolean recvInProgress = false;
-//  static byte ndx = 0;
-//  uint8_t startMarker = 0xA0;
-//  uint8_t endMarker = 0xB1;
-//  char rc;
-//
-//  if (currentMillis - previousMillisData >= intervalData) {
-//    while (mlink.available() > 0 && newData == false) {
-//      rc = mlink.read();
-//
-//      if (recvInProgress == true) {
-//        if (rc != endMarker) {
-//          receivedBytes[ndx] = rc;
-//          ndx++;
-//          if (ndx >= numBytes) {
-//            ndx = numBytes - 1;
-//          }
-//        }
-//        else {
-//          receivedBytes[ndx] = rc; // terminate the string
-//          recvInProgress = false;
-//          ndx = 0;
-//          newData = true;
-//        }
-//      }
-//
-//      else if (rc == startMarker) {
-//        recvInProgress = true;
-//      }
-//    }
-//  }
-//  getSpeed();
+  static boolean recvInProgress = false;
+  static byte ndx = 0;
+  uint8_t startMarker = 0xA0;
+  uint8_t endMarker = 0xB1;
+  uint8_t pen_endMarker = 0xB0;
+  uint8_t rc;
+
+  if (currentMillis - previousMillisData >= intervalData) {
+    if (hasActivated) {
+      Serial.println(mlink.available());
+      rc = mlink.read();
+      while (recvInProgress == true) {
+        if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
+          receivedBytes[ndx] = rc;
+          ndx++;
+          if (ndx >= numBytes) {
+            ndx = numBytes - 1;
+          }
+        }
+        else {
+          receivedBytes[ndx] = rc; // terminate the string
+          recvInProgress = false;
+          ndx = 0;
+          newData = true;
+        }
+        //Serial.println(rc);
+      }
+    }
+    if (rc == startMarker) {
+      recvInProgress = true;
+      receivedBytes[ndx] = rc;
+      ndx++;
+      //Serial.println(rc);
+    }
+  }
+
+
+  //    previousMillisData = currentMillis;
+  //    if (hasActivated)
+  //    {
+  //      uint8_t controllerData;
+  //      controllerData=mlink.read();
+  //      Serial.println(controllerData);
+  //    }
+  //  }
 
 
 }
 
-void getSpeed(){
+void getSpeed() {
   if (newData == true) {
-        switch(receivedBytes[dir_ndx]){
-          case 0:
-          motor_speed=receivedBytes[speed_ndx];
-          stay();
-          break;
-          case 1:
-          motor_speed=receivedBytes[speed_ndx];
-          goForward();
-          break;
-          case 2:
-          motor_speed=receivedBytes[speed_ndx];
-          goBack();
-          break;
-        }
-        newData = false;
-        previousMillisData = currentMillis;
+    switch (receivedBytes[dir_ndx]) {
+      case 0:
+        motor_speed = receivedBytes[speed_ndx];
+        stay();
+        break;
+      case 1:
+        motor_speed = receivedBytes[speed_ndx];
+        goForward();
+        break;
+      case 2:
+        motor_speed = receivedBytes[speed_ndx];
+        goBack();
+        break;
     }
+    newData = false;
+    previousMillisData = currentMillis;
+  }
 }
