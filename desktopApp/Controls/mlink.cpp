@@ -27,7 +27,7 @@ void motorMovementMessage(float power) {
 	message[4] = 0x11; // poll status
 	message[5] = motorSpeedMessageConverter(power); // left motor speed
 	// message[6] = motorSpeedMessageConverter(rightPower); // right motor speed
-	uint16_t checksum = calculateCheckSum(message, 4, 3);
+	uint16_t checksum = calculateCheckSum(message, 4, 2);
 	message[6] = checksum >> 8;
 	message[7] = checksum;
 	message[8] = 0xB0;
