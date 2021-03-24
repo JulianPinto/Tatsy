@@ -77,22 +77,25 @@ void resetIndication (uint8_t flags,
                       uint8_t region)
 {
   hasReset = true;
+  Serial.print("Reset Indication'");
 }
 
 void startIndication (uint8_t outcome,
                       uint32_t serial)
 {
   hasStarted = true;
+  Serial.print("Start Indication'");
 }
 
 void activateIndication ()
 {
   hasActivated = true;
+  Serial.print("Activate Indication'");
 }
 
 void stopIndication (uint8_t reason)
 {
-
+  Serial.print("Stop Indication'");
 }
 
 void transmitStatusIndication (uint8_t handle,
@@ -100,17 +103,19 @@ void transmitStatusIndication (uint8_t handle,
                                int8_t rssi)
 {
   hasSentData = true;
+  Serial.print("Transmit Status Indication'");
 }
 
 void errorIndication (uint8_t ackId,
                       uint8_t reason)
 {
-
+  Serial.print("Error Indication'");
 }
 
 void acknowledgeMessage (uint8_t messageId)
 {
   mlink.acknowledge (messageId);
+  Serial.print("Acknowledgment'");
 }
 
 
@@ -136,11 +141,14 @@ void setup()
 {
   Serial.begin(57600);
   mlink.begin (57600);
-  mlink.flushInput();
   pinMode(ledPin, OUTPUT);
   mlink.resetRequest(); // resetting MLink
+  delay(500);
+  Serial.print("Just reset and there are '");
+  Serial.print(mlink.available());
+  Serial.println("' bytes in the buffer");
   Serial.println("                ");
-  Serial.println("Done Setup");
+
 
   // All motor control pins are outputs
   pinMode(EnA, OUTPUT);
@@ -149,6 +157,8 @@ void setup()
   pinMode(In2, OUTPUT);
   pinMode(In3, OUTPUT);
   pinMode(In4, OUTPUT);
+
+  Serial.println("Done Setup");
 }
 
 
@@ -208,11 +218,16 @@ void sendStart()
     // on startRequest parameters
     mlink.startRequest(0x00, 0x00, 0x00, 0xFF);
     hasStarted = true;
+    Serial.print("Just started, and there are '");
+    Serial.print(mlink.available());
+    Serial.println("' bytes in the buffer");
   }
   else {
   }
 }
 
+
+//Receive data from MLINK
 void recvData() {
   static boolean recvInProgress = false;
   static byte ndx = 0;
@@ -220,35 +235,72 @@ void recvData() {
   uint8_t endMarker = 0xB1;
   uint8_t pen_endMarker = 0xB0;
   uint8_t rc;
-
-  if (currentMillis - previousMillisData >= intervalData) {
-    if (hasActivated) {
-      Serial.println(mlink.available());
-      rc = mlink.read();
-      while (recvInProgress == true) {
-        if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
-          receivedBytes[ndx] = rc;
-          ndx++;
-          if (ndx >= numBytes) {
-            ndx = numBytes - 1;
-          }
-        }
-        else {
-          receivedBytes[ndx] = rc; // terminate the string
-          recvInProgress = false;
-          ndx = 0;
-          newData = true;
-        }
-        //Serial.println(rc);
-      }
-    }
-    if (rc == startMarker) {
-      recvInProgress = true;
+  Serial.print("There are '");
+  Serial.print(mlink.available());
+  Serial.println("' bytes in the buffer");
+  while (mlink.available() > 0 && newData == false) {
+    rc = mlink.read();
+    if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
       receivedBytes[ndx] = rc;
       ndx++;
-      //Serial.println(rc);
+      if (ndx >= numBytes) {
+        ndx = numBytes - 1;
+      }
+    }
+    else {
+      ndx = 0;
+      newData = true;
     }
   }
+
+
+  //  if (currentMillis - previousMillisData >= intervalData) {
+  //    if (hasActivated) {
+  //      Serial.print("There are '");
+  //      Serial.print(mlink.available());
+  //      Serial.println("' bytes in the buffer");
+  //      rc = mlink.read();
+  //      while (recvInProgress == true) {
+  //        Serial.println("Data is currently being received");
+  //        if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
+  //          receivedBytes[ndx] = rc;
+  //          //          Serial.print("At ndx '");
+  //          //          Serial.print(ndx);
+  //          //          Serial.print("' the recieved byte is '");
+  //          //          Serial.print(rc);
+  //          //          Serial.println("'");
+  //          ndx++;
+  //          if (ndx >= numBytes) {
+  //            ndx = numBytes - 1;
+  //          }
+  //        }
+  //        else {
+  //          receivedBytes[ndx] = rc; // terminate the string
+  //          Serial.println("Data transmission is over");
+  //          //          Serial.print("'");
+  //          //          Serial.print(receivedBytes);
+  //          //          Serial.println("' was trasnmitted");
+  //          recvInProgress = false;
+  //          ndx = 0;
+  //          newData = true;
+  //        }
+  //        //Serial.println(rc);
+  //      }
+  //    }
+  //    if (rc == startMarker) {
+  //      Serial.println("Data transmission has started");
+  //      recvInProgress = true;
+  //      receivedBytes[ndx] = rc;
+  //      //      Serial.print("At ndx '");
+  //      //      Serial.print(ndx);
+  //      //      Serial.print("' the recieved byte is '");
+  //      //      Serial.print(rc);
+  //      //      Serial.println("'");
+  //      ndx++;
+  //
+  //      //Serial.println(rc);
+  //    }
+  //  }
 
 
   //    previousMillisData = currentMillis;
