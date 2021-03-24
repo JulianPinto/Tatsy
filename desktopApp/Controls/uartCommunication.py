@@ -47,7 +47,7 @@ class MlinkCommunication:
 
     def sendEndpointStartMessage(self, flags = "00", pollMatchOffset = "00", pollMatchMask = "00", hopID = "17"):
         if(self.ser.is_open):
-
+            hexString = "A0A100040A"
 
     def sendControllerSpeed(self, speed):
         if(self.ser.is_open):
