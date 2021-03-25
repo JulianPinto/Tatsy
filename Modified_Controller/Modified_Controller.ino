@@ -9,6 +9,8 @@
 #define ERROR       0x02
 #define dir_ndx     5
 #define speed_ndx   6
+#define CTS_PIN     7
+#define RTS_PIN     2
 
 /****************************************/
 /**   Using the MLinkControl library   **/
@@ -133,7 +135,7 @@ int motor_speed;
 
 //data receive stuff
 const byte numBytes = 16;
-char receivedBytes[numBytes];
+byte receivedBytes[numBytes];
 boolean newData = false;
 
 /*****************************************Void Setup*************************************/
@@ -148,8 +150,9 @@ void setup()
   Serial.print(mlink.available());
   Serial.println("' bytes in the buffer");
   Serial.println("                ");
-
-
+  pinMode (CTS_PIN, INPUT);
+  pinMode (RTS_PIN, OUTPUT);
+  
   // All motor control pins are outputs
   pinMode(EnA, OUTPUT);
   pinMode(EnB, OUTPUT);
@@ -235,23 +238,32 @@ void recvData() {
   uint8_t endMarker = 0xB1;
   uint8_t pen_endMarker = 0xB0;
   uint8_t rc;
-  Serial.print("There are '");
-  Serial.print(mlink.available());
-  Serial.println("' bytes in the buffer");
-  while (mlink.available() > 0 && newData == false) {
-    rc = mlink.read();
-    if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
-      receivedBytes[ndx] = rc;
-      ndx++;
-      if (ndx >= numBytes) {
-        ndx = numBytes - 1;
+  while (digitalRead (CTS_PIN) == HIGH);
+  if (digitalRead (CTS_PIN) == LOW)
+  {
+    digitalWrite(RTS_PIN, LOW);
+    Serial.print("There are '");
+    Serial.print(mlink.available());
+    Serial.println("' bytes in the buffer");
+    while (mlink.available() > 0 && newData == false) {
+      rc = mlink.read();
+      Serial.print(rc);
+      if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
+        receivedBytes[ndx] = rc;
+        ndx++;
+        if (ndx >= numBytes) {
+          ndx = numBytes - 1;
+        }
+      }
+      else {
+        ndx = 0;
+        newData = true;
       }
     }
-    else {
-      ndx = 0;
-      newData = true;
-    }
+
+    digitalWrite(RTS_PIN, HIGH);
   }
+
 
 
   //  if (currentMillis - previousMillisData >= intervalData) {
