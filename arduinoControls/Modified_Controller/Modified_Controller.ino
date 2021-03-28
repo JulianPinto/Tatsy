@@ -137,7 +137,7 @@ void acknowledgeMessage (uint8_t messageId)
 
 // The motor speed from the mlink from 0 to 255
 int motor_speed;
-int movDir = 0;
+int movDir = 0x64;
 //data receive stuff
 
 uint64_t receivedBytes;
@@ -171,7 +171,7 @@ void loop() {
   currentMillis = millis();
   sendStart();
   receiveMessage;
-  getSpeed();
+  //delay(1000);
 }
 
 
@@ -237,58 +237,29 @@ void sendStart()
 void receiveMessage (uint64_t data[],
                      uint16_t dataSize)
 {
-  //  while (mlink.available() > 0 && newData == false) {
-  //      rc = mlink.read();
-  //      Serial.print(rc);
-  //      if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
-  //        receivedBytes[ndx] = rc;
-  //        ndx++;
-  //        if (ndx >= numBytes) {
-  //          ndx = numBytes - 1;
-  //        }
-  //      }
-  //      e0lse {
-  //        ndx = 0;
-  //        newData = true;
-  //      }
-  //    }
-
-
-
   Serial.println(dataSize);
-
-  uint32_t motor_speed_low = data[2] % 0xFFFFFFFF;
-  uint32_t  motor_speed_high = (data[2] >> 32) % 0xFFFFFFFF;
-  motor_speed = motor_speed_low + (motor_speed_high * 32);
-  Serial.println(motor_speed);
 
   uint32_t movDir_low = data[1] % 0xFFFFFFFF;
   uint32_t  movDir_high = (data[1] >> 32) % 0xFFFFFFFF;
   movDir = movDir_low + (movDir_high * 32);
   Serial.println(movDir);
 
-
-}
-
-
-
-void getSpeed() {
-  switch (movDir) {
-    case 0:
-      motor_speed = 0;
-      stay();
-      break;
-    case 1:
-      goForward();
-      break;
-    case 2:
-      goBack();
-      break;
-    case 3:
-      digitalWrite(ledPin, HIGH);
-      break;
-    case 4:
-      digitalWrite(ledPin, LOW);
-      break;
+  if (movDir == 0x64) {
+    motor_speed = 0;
+    stay();
+  }
+  else if (movDir < 0x64 && movDir >= 0x00) {
+    motor_speed = map(movDir, 0x64, 0x00, 0, 100);
+    goBack();
+  }
+  else if (movDir > 0x64 && movDir <= 0xC8) {
+    motor_speed = map(movDir, 0x64, 0xC8, 0, 100);
+    goForward();
+  }
+  else if (movDir == 0xFF) {
+    digitalWrite(ledPin, HIGH);
+  }
+  else if (movDir == 0xFE) {
+    digitalWrite(ledPin, LOW);
   }
 }

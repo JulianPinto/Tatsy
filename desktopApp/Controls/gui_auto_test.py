@@ -1,6 +1,7 @@
 from controller import controller
 from XInput import *
 from pywinauto.application import Application
+import time
 
 app=Application(backend='uia').connect(title='Base Data Request', timeout=200)
 
@@ -39,12 +40,12 @@ if __name__ == "__main__":
             btnsPressed=get_button_values(controllerState)
             #print(btnsPressed)
             if btnsPressed["DPAD_UP"]:
-                print("Contoller switch button pressed")
+                #print("Contoller switch button pressed")
                 while btnsPressed["DPAD_UP"]:
                     controllerState = get_state(0)
                     btnsPressed=get_button_values(controllerState)
                 return True
-            print("Contoller switch button not pressed")
+            #print("Contoller switch button not pressed")
             return False
 
     while True:
@@ -58,8 +59,10 @@ if __name__ == "__main__":
             sendInput = app.BaseDataRequest.child_window(title="Send", auto_id="buttonSend", control_type="Button").wrapper_object()
             sendInput.click_input()
             textInput.set_text("")
+            time.sleep(5)
             if(switchControl()):
                 movement_enabler=False
+            
         
         if(switchControl()):
                 movement_enabler=True
