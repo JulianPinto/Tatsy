@@ -38,6 +38,7 @@ class MlinkCommunication:
     def sendMessage(self, message):
         try:
             written = self.ser.write(bytes.fromhex(message))
+            print(written, "bytes written")
             if written != (len(message) / 2):
                 raise TypeError("message not sent successfully")
         except TypeError:
