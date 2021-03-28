@@ -36,6 +36,13 @@ class MlinkCommunication:
             hexSpeed = "0" + hexSpeed
         print("hexSpeed ", hexSpeed)
         return hexSpeed
+
+    def initiateConnection(self, mlink):
+        mlink.sendResetMessage()
+        mlink.readMessage()
+        mlink.sendStartMessage()
+        mlink.readMessage()
+
     
     def sendMessage(self, message):
         try:
@@ -56,14 +63,17 @@ class MlinkCommunication:
         messageString = messageString.replace("b", "", 1)
         return messageString
 
-    def sendStartMessage(self, hopID = "00", networkSize="00"):
+    def sendStartMessage(self, hopID = "00", networkSize="80"):
         if(self.ser.is_open):
             hexString = "a0a100020a" + hopID + networkSize
             checkSum = self.calculateCheckSum(hexString)
             hexString = hexString + checkSum + "b0b1"
             print("start message ", bytes.fromhex(hexString))
 
-            self.sendMessage(bytes.fromhex(hexString))
+            if(not(self.ser.rts)):
+                self.ser.rts=True
+                self.sendMessage(hexString)
+                self.ser.rts=False
 
     def sendEndpointStartMessage(self, flags = "00", pollMatchOffset = "00", pollMatchMask = "00", hopID = "00"):
         if(self.ser.is_open):
@@ -84,7 +94,10 @@ class MlinkCommunication:
             hexString = hexString + checkSum + "b0b1"
             print("controller message ", bytes.fromhex(hexString))
 
-            self.sendMessage(hexString)
+            if(not(self.ser.rts)):
+                self.ser.rts=True
+                self.sendMessage(hexString)
+                self.ser.rts=False
 
     def sendResetMessage(self):
         if(self.ser.is_open):
@@ -95,8 +108,8 @@ class MlinkCommunication:
 
             if(not(self.ser.rts)):
                 self.ser.rts=True
-                self.sendMessage(b'\01')
-                self.sendMessage(bytes.fromhex(hexString))
+                self.sendMessage("01")
+                self.sendMessage(hexString)
                 self.ser.rts=False
 
     def sendStartPollMessage(self, endpointAddress = "00", pollMessage = "ff", pollInterval = "00000001", pollPriority = "00"):
@@ -106,42 +119,54 @@ class MlinkCommunication:
             hexString = hexString + checksum + "b0b1"
             print("start poll request message ", bytes.fromhex(hexString))
 
-            self.sendMessage(hexString)
+            if(not(self.ser.rts)):
+                self.ser.rts=True
+                self.sendMessage(hexString)
+                self.ser.rts=False
 
     def sendNack(self, message, reason):
         if(self.ser.is_open):
-            messageID = hex(message[2])
-            hexString = "a0a1000202" + messageID[2:] + reason
+            messageID = message[8:10]
+            hexString = "a0a1000202" + messageID + reason
             checksum = self.calculateCheckSum(hexString)
             hexString = hexString + checksum + "b0b1"
             print("Nack message ", bytes.fromhex(hexString))
 
-            self.sendMessage(hexString)
+            if(not(self.ser.rts)):
+                self.ser.rts=True
+                self.sendMessage(hexString)
+                self.ser.rts=False
 
     def sendAck(self, message):
         if(self.ser.is_open):
-            messageID = hex(message[2])
-            hexString = "a0a1000101" + messageID[2:]
+            messageID = message[8:10]
+            hexString = "a0a1000101" + messageID
             checksum = self.calculateCheckSum(hexString)
             hexString = hexString + checksum + "b0b1"
             print("ack message ", bytes.fromhex(hexString))
 
-            self.sendMessage(hexString)
+            if(not(self.ser.rts)):
+                self.ser.rts=True
+                self.sendMessage(hexString)
+                self.ser.rts=False
 
     def compareCheckSum(self, message):
-        if(self.ser.is_open):
-            messageString = self.convertMessageToString(message)
-
-            checksum = self.calculateCheckSum(messageString)
-            if(checksum == messageString[-8:-4]):
-                return True
-            return False
+        checksum = self.calculateCheckSum(message[:-8])
+        if(checksum == message[-8:-4]):
+            return True
+        return False
 
 
     def readMessage(self):
         if(self.ser.is_open):
             message = self.ser.readline()
+            message = message.hex()
             print("message received", message)
+            if(message[8:10] != '01'):
+                if self.compareCheckSum(message):
+                    self.sendAck(message)
+                else:
+                    self.sendNack(message, "02")
             self.ser.flush()
             return message
         return 0
