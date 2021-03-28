@@ -9,7 +9,7 @@ if __name__ == "__main__":
     mlink.sendResetMessage()
     print("Just Reset")
     hasStarted=False
-
+    
 
     print("entering loop")
     while True:
