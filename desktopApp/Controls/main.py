@@ -5,11 +5,14 @@ from uartCommunication import MlinkCommunication
 if __name__ == "__main__":
     print("starting program")
     print("initializing")
-    mlink = MlinkCommunication(port = "COM1") # idk change if wrong
+    mlink = MlinkCommunication(port = "COM9") # idk change if wrong
+    mlink.sendResetMessage()
+    
     print("entering loop")
-    for x in range (0, 10):
+    while True:
+        mlink.sendStartMessage()
         print("reading message")
         mlink.readMessage()
         print("writing controller")
         mlink.sendControllerSpeed(speed = controller.getControllerStickInput())
-        print(x)
+        

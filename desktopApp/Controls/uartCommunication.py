@@ -4,11 +4,12 @@ from serial.serialutil import SerialException, SerialTimeoutException
 class MlinkCommunication:
     def __init__(self, port, baudRate = 57600, timeout = 1):
         try:
-            ser = serial.Serial(port)
+            ser = serial.Serial(port, rtscts=True)
             if ser.is_open:
                 ser.close()
                 
             self.ser = serial.Serial(port, baudRate, timeout = timeout, rtscts = True)
+            self.ser.rts=False
             print("connection is open")
         except SerialException:
             print("Port", port, "not opened")
@@ -59,21 +60,23 @@ class MlinkCommunication:
             checkSum = self.calculateCheckSum(hexString)
             hexString = hexString + checkSum + "b0b1"
             print("start message ", bytes.fromhex(hexString))
+    
+            self.sendMessage(hexString)
 
-            self.sendMessage(self, hexString)
-
-    def sendEndpointStartMessage(self, flags = "00", pollMatchOffset = "00", pollMatchMask = "00", hopID = "17"):
+    def sendEndpointStartMessage(self, flags = "00", pollMatchOffset = "00", pollMatchMask = "00", hopID = "00"):
         if(self.ser.is_open):
             hexString = "a0a100040a" + flags + pollMatchOffset + pollMatchMask + hopID
             checkSum = self.calculateCheckSum(hexString)
             hexString = hexString + checkSum + "b0b1"
             print("endpoint start message ", bytes.fromhex(hexString))
-
-            self.sendMessage(self, hexString)
+            if(not(self.ser.rts)):
+                self.ser.rts=True
+                self.sendMessage( hexString)
+                self.ser.rts=False
 
     def sendControllerSpeed(self, speed):
         if(self.ser.is_open):
-            hexString = "a0a1000211" + str(self.convertSpeed(speed))
+            hexString = "a0a1000211" + self.convertSpeed(speed)
             checkSum = self.calculateCheckSum(hexString)
             hexString = hexString + checkSum + "b0b1"
             print("controller message ", bytes.fromhex(hexString))
@@ -86,8 +89,12 @@ class MlinkCommunication:
             checksum = self.calculateCheckSum(hexString)
             hexString = hexString + checksum + "b0b1"
             print("reset message: ", bytes.fromhex(hexString))
-
-            self.sendMessage(hexString)
+            
+            if(not(self.ser.rts)):
+                self.ser.rts=True
+                self.sendMessage("01")
+                self.sendMessage(hexString)
+                self.ser.rts=False
 
     def sendStartPollMessage(self, endpointAddress = "00", pollMessage = "ff", pollInterval = "00000001", pollPriority = "00"):
         if(self.ser.is_open):
