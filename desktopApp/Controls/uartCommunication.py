@@ -22,10 +22,11 @@ class MlinkCommunication:
         for x in range (offset, len(message), 2):
             checksum += int(message[x:x+2], 16)
         checksum = checksum & (2**15 - 1)
-        checksumString = str(checksum)
-        while len(checksumString) < 4:
-            checksumString = "0" + checksumString
-        return checksumString
+        checksumHex = hex(checksum)
+        checksumHex = checksumHex[2:]
+        while len(checksumHex) < 4:
+            checksumHex = "0" + checksumHex
+        return checksumHex
 
     def convertSpeed(self, speed):
         newSpeed = abs((speed + 1) * 100)
@@ -61,7 +62,7 @@ class MlinkCommunication:
             checkSum = self.calculateCheckSum(hexString)
             hexString = hexString + checkSum + "b0b1"
             print("start message ", bytes.fromhex(hexString))
-    
+
             self.sendMessage(hexString)
 
     def sendEndpointStartMessage(self, flags = "00", pollMatchOffset = "00", pollMatchMask = "00", hopID = "00"):
@@ -70,6 +71,7 @@ class MlinkCommunication:
             checkSum = self.calculateCheckSum(hexString)
             hexString = hexString + checkSum + "b0b1"
             print("endpoint start message ", bytes.fromhex(hexString))
+
             if(not(self.ser.rts)):
                 self.ser.rts=True
                 self.sendMessage( hexString)
@@ -90,7 +92,7 @@ class MlinkCommunication:
             checksum = self.calculateCheckSum(hexString)
             hexString = hexString + checksum + "b0b1"
             print("reset message: ", bytes.fromhex(hexString))
-            
+
             if(not(self.ser.rts)):
                 self.ser.rts=True
                 self.sendMessage("01")
