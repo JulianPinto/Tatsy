@@ -9,8 +9,6 @@
 #define ERROR       0x02
 #define dir_ndx     5
 #define speed_ndx   6
-#define CTS_PIN     7
-#define RTS_PIN     2
 
 /****************************************/
 /**   Using the MLinkControl library   **/
@@ -46,6 +44,11 @@ void errorIndication (uint8_t ackId,
 // Acknowledgment
 void acknowledgeMessage(uint8_t messageId);
 
+//Receive Messages: Added to capstone
+void receiveMessage (uint64_t data[],
+                     uint16_t dataSize);
+//
+
 // Used to check when there is a callback
 bool hasReset = false;
 bool hasStarted = false;
@@ -68,7 +71,9 @@ AltSoftSerial mlink(resetIndication,
                     stopIndication,
                     transmitStatusIndication,
                     errorIndication,
-                    acknowledgeMessage);
+                    acknowledgeMessage,
+                    //Added to capstone
+                    receiveMessage);
 
 void resetIndication (uint8_t flags,
                       uint8_t hwRev,
@@ -79,25 +84,25 @@ void resetIndication (uint8_t flags,
                       uint8_t region)
 {
   hasReset = true;
-  Serial.print("Reset Indication'");
+  Serial.println("Reset Indication'");
 }
 
 void startIndication (uint8_t outcome,
                       uint32_t serial)
 {
   hasStarted = true;
-  Serial.print("Start Indication'");
+  Serial.println("Start Indication'");
 }
 
 void activateIndication ()
 {
   hasActivated = true;
-  Serial.print("Activate Indication'");
+  Serial.println("Activate Indication'");
 }
 
 void stopIndication (uint8_t reason)
 {
-  Serial.print("Stop Indication'");
+  Serial.println("Stop Indication'");
 }
 
 void transmitStatusIndication (uint8_t handle,
@@ -105,19 +110,19 @@ void transmitStatusIndication (uint8_t handle,
                                int8_t rssi)
 {
   hasSentData = true;
-  Serial.print("Transmit Status Indication'");
+  Serial.println("Transmit Status Indication'");
 }
 
 void errorIndication (uint8_t ackId,
                       uint8_t reason)
 {
-  Serial.print("Error Indication'");
+  Serial.println("Error Indication'");
 }
 
 void acknowledgeMessage (uint8_t messageId)
 {
   mlink.acknowledge (messageId);
-  Serial.print("Acknowledgment'");
+  Serial.println("Acknowledgment'");
 }
 
 
@@ -132,10 +137,10 @@ void acknowledgeMessage (uint8_t messageId)
 
 // The motor speed from the mlink from 0 to 255
 int motor_speed;
-
+int movDir = 0;
 //data receive stuff
-const byte numBytes = 16;
-byte receivedBytes[numBytes];
+
+uint64_t receivedBytes;
 boolean newData = false;
 
 /*****************************************Void Setup*************************************/
@@ -144,15 +149,11 @@ void setup()
   Serial.begin(57600);
   mlink.begin (57600);
   pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, HIGH);
   mlink.resetRequest(); // resetting MLink
   delay(500);
-  Serial.print("Just reset and there are '");
-  Serial.print(mlink.available());
-  Serial.println("' bytes in the buffer");
-  Serial.println("                ");
-  pinMode (CTS_PIN, INPUT);
-  pinMode (RTS_PIN, OUTPUT);
-  
+  Serial.print("Just reset");
+
   // All motor control pins are outputs
   pinMode(EnA, OUTPUT);
   pinMode(EnB, OUTPUT);
@@ -169,7 +170,8 @@ void setup()
 void loop() {
   currentMillis = millis();
   sendStart();
-  recvData();
+  receiveMessage;
+  getSpeed();
 }
 
 
@@ -186,6 +188,7 @@ void goForward()   //run both motors in the same direction
   digitalWrite(In4, LOW);
   // set left motor speed
   analogWrite(EnB, motor_speed);
+  Serial.println("Going Forwards");
 }
 
 void goBack()   //run both motors in the same direction
@@ -200,6 +203,7 @@ void goBack()   //run both motors in the same direction
   digitalWrite(In4, HIGH);
   // set left motor speed
   analogWrite(EnB, motor_speed);
+  Serial.println("Going Backwards");
 
 }
 void stay() {
@@ -208,6 +212,7 @@ void stay() {
   digitalWrite(In2, LOW);
   digitalWrite(In3, LOW);
   digitalWrite(In4, LOW);
+  Serial.println("Staying");
 }
 
 
@@ -229,121 +234,61 @@ void sendStart()
   }
 }
 
-
-//Receive data from MLINK
-void recvData() {
-  static boolean recvInProgress = false;
-  static byte ndx = 0;
-  uint8_t startMarker = 0xA0;
-  uint8_t endMarker = 0xB1;
-  uint8_t pen_endMarker = 0xB0;
-  uint8_t rc;
-  while (digitalRead (CTS_PIN) == HIGH);
-  if (digitalRead (CTS_PIN) == LOW)
-  {
-    digitalWrite(RTS_PIN, LOW);
-    Serial.print("There are '");
-    Serial.print(mlink.available());
-    Serial.println("' bytes in the buffer");
-    while (mlink.available() > 0 && newData == false) {
-      rc = mlink.read();
-      Serial.print(rc);
-      if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
-        receivedBytes[ndx] = rc;
-        ndx++;
-        if (ndx >= numBytes) {
-          ndx = numBytes - 1;
-        }
-      }
-      else {
-        ndx = 0;
-        newData = true;
-      }
-    }
-
-    digitalWrite(RTS_PIN, HIGH);
-  }
-
-
-
-  //  if (currentMillis - previousMillisData >= intervalData) {
-  //    if (hasActivated) {
-  //      Serial.print("There are '");
-  //      Serial.print(mlink.available());
-  //      Serial.println("' bytes in the buffer");
+void receiveMessage (uint64_t data[],
+                     uint16_t dataSize)
+{
+  //  while (mlink.available() > 0 && newData == false) {
   //      rc = mlink.read();
-  //      while (recvInProgress == true) {
-  //        Serial.println("Data is currently being received");
-  //        if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
-  //          receivedBytes[ndx] = rc;
-  //          //          Serial.print("At ndx '");
-  //          //          Serial.print(ndx);
-  //          //          Serial.print("' the recieved byte is '");
-  //          //          Serial.print(rc);
-  //          //          Serial.println("'");
-  //          ndx++;
-  //          if (ndx >= numBytes) {
-  //            ndx = numBytes - 1;
-  //          }
+  //      Serial.print(rc);
+  //      if (rc != endMarker && receivedBytes[ndx - 1] != pen_endMarker) {
+  //        receivedBytes[ndx] = rc;
+  //        ndx++;
+  //        if (ndx >= numBytes) {
+  //          ndx = numBytes - 1;
   //        }
-  //        else {
-  //          receivedBytes[ndx] = rc; // terminate the string
-  //          Serial.println("Data transmission is over");
-  //          //          Serial.print("'");
-  //          //          Serial.print(receivedBytes);
-  //          //          Serial.println("' was trasnmitted");
-  //          recvInProgress = false;
-  //          ndx = 0;
-  //          newData = true;
-  //        }
-  //        //Serial.println(rc);
+  //      }
+  //      e0lse {
+  //        ndx = 0;
+  //        newData = true;
   //      }
   //    }
-  //    if (rc == startMarker) {
-  //      Serial.println("Data transmission has started");
-  //      recvInProgress = true;
-  //      receivedBytes[ndx] = rc;
-  //      //      Serial.print("At ndx '");
-  //      //      Serial.print(ndx);
-  //      //      Serial.print("' the recieved byte is '");
-  //      //      Serial.print(rc);
-  //      //      Serial.println("'");
-  //      ndx++;
-  //
-  //      //Serial.println(rc);
-  //    }
-  //  }
 
 
-  //    previousMillisData = currentMillis;
-  //    if (hasActivated)
-  //    {
-  //      uint8_t controllerData;
-  //      controllerData=mlink.read();
-  //      Serial.println(controllerData);
-  //    }
-  //  }
+
+  Serial.println(dataSize);
+
+  uint32_t motor_speed_low = data[2] % 0xFFFFFFFF;
+  uint32_t  motor_speed_high = (data[2] >> 32) % 0xFFFFFFFF;
+  motor_speed = motor_speed_low + (motor_speed_high * 32);
+  Serial.println(motor_speed);
+
+  uint32_t movDir_low = data[1] % 0xFFFFFFFF;
+  uint32_t  movDir_high = (data[1] >> 32) % 0xFFFFFFFF;
+  movDir = movDir_low + (movDir_high * 32);
+  Serial.println(movDir);
 
 
 }
 
+
+
 void getSpeed() {
-  if (newData == true) {
-    switch (receivedBytes[dir_ndx]) {
-      case 0:
-        motor_speed = receivedBytes[speed_ndx];
-        stay();
-        break;
-      case 1:
-        motor_speed = receivedBytes[speed_ndx];
-        goForward();
-        break;
-      case 2:
-        motor_speed = receivedBytes[speed_ndx];
-        goBack();
-        break;
-    }
-    newData = false;
-    previousMillisData = currentMillis;
+  switch (movDir) {
+    case 0:
+      motor_speed = 0;
+      stay();
+      break;
+    case 1:
+      goForward();
+      break;
+    case 2:
+      goBack();
+      break;
+    case 3:
+      digitalWrite(ledPin, HIGH);
+      break;
+    case 4:
+      digitalWrite(ledPin, LOW);
+      break;
   }
 }

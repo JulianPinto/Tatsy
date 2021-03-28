@@ -8,7 +8,7 @@
 #define In4 6
 
 // The motor speed from the mlink from 0 to 255
-int motor_speed;
+int motor_speed=255;
 
 //data receive stuff
 const byte numBytes = 16;
@@ -78,7 +78,7 @@ void loop() {
         break;
       //Ends the serial connection
       case 'E':
-        Serial.write("Ending Connction\n");
+        Serial.write("Ending Connection\n");
         Serial.end();
         break;
     }
