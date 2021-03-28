@@ -1,31 +1,70 @@
 # imports
+import os
 import tkinter as tk
 import tkinter.font as tkFont
-from helperFunctions import *
+import tkinter.messagebox
+import easygui
+
+from projectPage import projectPage
 
 # initializing window
-root = tk.Tk()
-root.title("Tatsy Project")
-root.geometry("400x400")
-root.resizable(0, 0)
+class newPage:
+    def __init__(self, master):
+        self.master = master
 
-# first window components
-titleFont = tkFont.Font(family="Helvetica", size="36", weight="bold")
-buttonFont = tkFont.Font(family="Helventica", size="20")
+        self.master.title("Tatsy Project")
+        self.master.geometry("400x400")
+        self.master.resizable(0, 0)
 
-noProjectFrame = tk.Frame(root)
+        # first window components
+        self.titleFont = tkFont.Font(family="Helvetica", size="36", weight="bold")
+        self.buttonFont = tkFont.Font(family="Helventica", size="20")
 
-appTitleLabel = tk.Label(noProjectFrame, text="Tatsy", padx=30, pady=30, font=titleFont)
-newProjectButton = tk.Button(noProjectFrame, text="New Project", font=buttonFont, width="15", pady="5", command=helpers.createNewProject)
-openProjectButton = tk.Button(noProjectFrame, text="Open Project", font=buttonFont, width="15", pady="5", command=helpers.openProject)
+        self.noProjectFrame = tk.Frame(self.master)
 
-#packing to frame
-appTitleLabel.grid(pady="5", row="0")
-newProjectButton.grid(pady="5", row="1")
-openProjectButton.grid(pady="5", row="2")
+        self.appTitleLabel = tk.Label(self.noProjectFrame, text="Tatsy", padx=30, pady=30, font=self.titleFont)
+        self.newProjectButton = tk.Button(self.noProjectFrame, text="New Project", font=self.buttonFont, width="15", pady="5", command=self.newProject)
+        self.openProjectButton = tk.Button(self.noProjectFrame, text="Open Project", font=self.buttonFont, width="15", pady="5", command=self.openProject)
 
-noProjectFrame.pack(expand=True)
+        #packing to frame
+        self.appTitleLabel.grid(pady="5", row="0")
+        self.newProjectButton.grid(pady="5", row="1")
+        self.openProjectButton.grid(pady="5", row="2")
 
+        self.noProjectFrame.pack(expand=True)
+
+    def newProject(self):
+        dirPath = easygui.diropenbox(title = "New Project Directory")
+        if dirPath != None:
+            if not os.path.exists(dirPath + '\\notes.txt'):
+                open(dirPath + '\\notes.txt', 'w').close()
+            if not os.path.exists(dirPath + '\\video'):
+                os.mkdir(dirPath + '\\video')
+
+            self.nextWindow(dirPath)
+
+    def openProject(self):
+        dirPath = easygui.diropenbox(title = "Open Project Directory")
+        if dirPath != None:
+            print(dirPath)
+            if not os.path.exists(dirPath + '\\notes.txt'):
+                tkinter.messagebox.showinfo("Invalid Directory", "This directory does not have the right files for a project directory.")
+                return
+            if not os.path.exists(dirPath + '\\video'):
+                tkinter.messagebox.showinfo("Invalid Directory", "This directory does not have the right files for a project directory.")
+                return
+
+            self.nextWindow(dirPath)
+
+    def nextWindow(self, path):
+        self.master.destroy()
+        self.master = tk.Tk()
+        self.app = projectPage(self.master, path)
+        self.master.mainloop()
 
 # main loop
-root.mainloop()
+if __name__ == '__main__':
+    root = tk.Tk()
+    app = newPage(root)
+
+    root.mainloop()

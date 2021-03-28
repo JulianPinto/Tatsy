@@ -1,43 +1,47 @@
 import tkinter as tk
 from tkinter.constants import CENTER, INSERT, NE, NW
 import tkinter.font as tkFont
-from helperFunctions import *
+import tkinter.messagebox
+import os
+import easygui
 
 # initializing window
 class projectPage:
-    def __init__(self):
+    def __init__(self, master, path):
         # init window
-        self.root = tk.Tk()
-        self.root.title("Tatsy Project")
-        self.root.state('zoomed')
-        self.root.update_idletasks()
+        self.master = master
+        self.master.title("Tatsy Project")
+        self.master.state('zoomed')
+        self.master.update_idletasks()
+
+        self.path = path
 
         self.generalFont = tkFont.Font(family="Helventica", size="12")
 
         # create components
-        self.notesArea = tk.Text(self.root, font=self.generalFont, padx=4, pady=4, yscrollcommand=set())
-        self.infoText = tk.Listbox(self.root, font=self.generalFont)
+        self.notesArea = tk.Text(self.master, font=self.generalFont, padx=4, pady=4, yscrollcommand=set())
+        self.infoText = tk.Listbox(self.master, font=self.generalFont)
 
         #menu components
-        self.menuBar = tk.Menu(self.root, font=self.generalFont, tearoff=0)
+        self.menuBar = tk.Menu(self.master, font=self.generalFont, tearoff=0)
 
         # file menu
         self.fileMenu = tk.Menu(self.menuBar, tearoff=0, font=self.generalFont)
-        self.fileMenu.add_command(label="New", command=helpers.createNewProject)
-        self.fileMenu.add_command(label="Open", command=helpers.openProject)
-        self.fileMenu.add_command(label="Save", command=helpers.saveProject)
-        self.fileMenu.add_command(label="Save As", command=helpers.saveProjectAsNew)
+        self.fileMenu.add_command(label="New", command=self.newProject)
+        self.fileMenu.add_command(label="Open", command=self.openProject)
+        self.fileMenu.add_command(label="Save", command=self.saveProject)
+        self.fileMenu.add_command(label="Save As", command=self.saveProjectAsNew)
 
         self.fileMenu.add_separator()
         self.menuBar.add_cascade(label="File", menu=self.fileMenu)
 
-        self.menuBar.add_command(label="Record", command=helpers.recordVideo)
+        self.menuBar.add_command(label="Record", command=self.recordVideo)
         self.menuBar.add_separator()
 
-        self.root.config(menu=self.menuBar)
+        self.master.config(menu=self.menuBar)
 
         #video components
-        self.videoFrame = tk.Frame(self.root)
+        self.videoFrame = tk.Frame(self.master)
         self.videoDisplay = tk.Label(self.videoFrame, text="Video area", bg="white")
         self.timeDisplay = tk.Label(self.videoFrame, font=self.generalFont, text="Time: 07:45:33", 
             padx=4, pady=4, justify=CENTER)
@@ -63,10 +67,41 @@ class projectPage:
         self.timeDisplay.place(relx=0, rely=0, y=5)
         self.distanceDisplay.place(relx=0, rely=0, y=40)
 
-        # main loop
-        self.root.mainloop()
+    def saveProject(self):
+        print("save proj")
 
+    def saveProjectAsNew(self):
+        print("save as new")
 
-# mainloop
+    def recordVideo(self):
+        print("record")
+
+    def changeVideo(self):
+        print("change vid input")
+    
+    def newProject(self):
+        dirPath = easygui.diropenbox(title = "New Project Directory")
+        if dirPath != None:
+            if not os.path.exists(dirPath + '\\notes.txt'):
+                open(dirPath + '\\notes.txt', 'w').close()
+            if not os.path.exists(dirPath + '\\video'):
+                os.mkdir(dirPath + '\\video')
+
+            self.nextWindow(dirPath)
+
+    def openProject(self):
+        dirPath = easygui.diropenbox(title = "Open Project Directory")
+        if dirPath != None:
+            if not os.path.exists(dirPath + '\\notes.txt'):
+                tkinter.messagebox.showinfo("Invalid Directory", "This directory does not have the right files for a project directory.")
+                return
+            if not os.path.exists(dirPath + '\\video'):
+                tkinter.messagebox.showinfo("Invalid Directory", "This directory does not have the right files for a project directory.")
+                return
+
+            self.nextWindow(dirPath)
+
 if __name__ == '__main__':
-    app = projectPage()
+    root = tk.Tk()
+    app = projectPage(root, 'C:\Users\work\Projects\Tatsy\desktopApp\projfile')
+    root.mainloop()
