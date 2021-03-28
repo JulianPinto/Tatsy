@@ -63,7 +63,7 @@ class MlinkCommunication:
             hexString = hexString + checkSum + "b0b1"
             print("start message ", bytes.fromhex(hexString))
 
-            self.sendMessage(hexString)
+            self.sendMessage(bytes.fromhex(hexString))
 
     def sendEndpointStartMessage(self, flags = "00", pollMatchOffset = "00", pollMatchMask = "00", hopID = "00"):
         if(self.ser.is_open):
@@ -74,7 +74,7 @@ class MlinkCommunication:
 
             if(not(self.ser.rts)):
                 self.ser.rts=True
-                self.sendMessage( hexString)
+                self.sendMessage(hexString.decode("hex"))
                 self.ser.rts=False
 
     def sendControllerSpeed(self, speed):
@@ -95,8 +95,8 @@ class MlinkCommunication:
 
             if(not(self.ser.rts)):
                 self.ser.rts=True
-                self.sendMessage("01")
-                self.sendMessage(hexString)
+                self.sendMessage(b'\01')
+                self.sendMessage(bytes.fromhex(hexString))
                 self.ser.rts=False
 
     def sendStartPollMessage(self, endpointAddress = "00", pollMessage = "ff", pollInterval = "00000001", pollPriority = "00"):
