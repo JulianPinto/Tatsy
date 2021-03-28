@@ -6,10 +6,9 @@ app=Application(backend='uia').connect(title='Base Data Request', timeout=200)
 
 #app.BaseDataRequest.print_control_identifiers()
 textInput = app.BaseDataRequest.child_window(auto_id="textToSend", control_type="Edit").wrapper_object()
-textInput.type_keys("01FF")
-
+#textInput.type_keys("01FF")
 sendInput = app.BaseDataRequest.child_window(title="Send", auto_id="buttonSend", control_type="Button").wrapper_object()
-sendInput.click_input()
+#sendInput.click_input()
 
 movement_enabler=True
 
@@ -35,26 +34,32 @@ if __name__ == "__main__":
         return 0.0
 
     def switchControl():
-        events = get_events()
         if(connected[0]):
-            for event in events:
-                if event.type == EVENT_BUTTON_PRESSED:
-                    if event.button == "DPAD_UP":
-                        print("Contoller switch button pressed")
-                        return True
-        print("Contoller switch button not pressed")
-        return False
+            controllerState = get_state(0)
+            btnsPressed=get_button_values(controllerState)
+            #print(btnsPressed)
+            if btnsPressed["DPAD_UP"]:
+                print("Contoller switch button pressed")
+                while btnsPressed["DPAD_UP"]:
+                    controllerState = get_state(0)
+                    btnsPressed=get_button_values(controllerState)
+                return True
+            print("Contoller switch button not pressed")
+            return False
 
     while True:
         if(movement_enabler):
             controllerSpeed=convertSpeed(speed = getControllerStickInput())
 
+            textInput.set_text("")
             textInput = app.BaseDataRequest.child_window(auto_id="textToSend", control_type="Edit").wrapper_object()
-            
             textInput.set_text(controllerSpeed)
 
             sendInput = app.BaseDataRequest.child_window(title="Send", auto_id="buttonSend", control_type="Button").wrapper_object()
             sendInput.click_input()
             textInput.set_text("")
-            if(switchControl):
+            if(switchControl()):
                 movement_enabler=False
+        
+        if(switchControl()):
+                movement_enabler=True
