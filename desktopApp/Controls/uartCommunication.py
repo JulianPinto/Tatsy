@@ -89,7 +89,7 @@ class MlinkCommunication:
 
     def sendControllerSpeed(self, speed):
         if(self.ser.is_open):
-            hexString = "a0a1000211" + self.convertSpeed(speed)
+            hexString = "a0a10003150300" + self.convertSpeed(speed)
             checkSum = self.calculateCheckSum(hexString)
             hexString = hexString + checkSum + "b0b1"
             print("controller message ", bytes.fromhex(hexString))
@@ -160,6 +160,8 @@ class MlinkCommunication:
     def readMessage(self):
         if(self.ser.is_open):
             message = self.ser.readline()
+            if len(message)==0:
+                return 0
             message = message.hex()
             print("message received", message)
             if(message[8:10] != '01'):
