@@ -135,8 +135,9 @@ void acknowledgeMessage (uint8_t messageId)
 #define In3 5
 #define In4 6
 
+
 // The motor speed from the mlink from 0 to 255
-int motor_speed;
+int motor_speed = 255;
 int movDir = 0x64;
 //data receive stuff
 
@@ -183,12 +184,13 @@ void goForward()   //run both motors in the same direction
   digitalWrite(In2, LOW);
   // set right motor speed
   analogWrite(EnA, motor_speed);
+  Serial.println("Right motor");
   // turn on motor B
   digitalWrite(In3, HIGH);
   digitalWrite(In4, LOW);
   // set left motor speed
   analogWrite(EnB, motor_speed);
-  Serial.println("Going Forwards");
+  Serial.println("Left motor");
 }
 
 void goBack()   //run both motors in the same direction
@@ -198,13 +200,13 @@ void goBack()   //run both motors in the same direction
   digitalWrite(In2, HIGH);
   // set right motor speed
   analogWrite(EnA, motor_speed);
+  Serial.println("Right motor");
   // turn on motor B
   digitalWrite(In3, LOW);
   digitalWrite(In4, HIGH);
   // set left motor speed
   analogWrite(EnB, motor_speed);
-  Serial.println("Going Backwards");
-
+  Serial.println("Left motor");
 }
 void stay() {
   // now turn off motors
@@ -212,7 +214,6 @@ void stay() {
   digitalWrite(In2, LOW);
   digitalWrite(In3, LOW);
   digitalWrite(In4, LOW);
-  Serial.println("Staying");
 }
 
 
@@ -249,11 +250,11 @@ void receiveMessage (uint64_t data[],
     stay();
   }
   else if (movDir < 0x64 && movDir >= 0x00) {
-    motor_speed = map(movDir, 0x64, 0x00, 0, 100);
+    motor_speed = map(movDir, 0x64, 0x00, 0, 250);
     goBack();
   }
   else if (movDir > 0x64 && movDir <= 0xC8) {
-    motor_speed = map(movDir, 0x64, 0xC8, 0, 100);
+    motor_speed = map(movDir, 0x64, 0xC8, 0, 250);
     goForward();
   }
   else if (movDir == 0xFF) {
@@ -262,4 +263,5 @@ void receiveMessage (uint64_t data[],
   else if (movDir == 0xFE) {
     digitalWrite(ledPin, LOW);
   }
+  Serial.println(motor_speed);
 }
