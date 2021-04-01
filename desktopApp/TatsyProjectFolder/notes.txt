@@ -1,6 +1,5 @@
 
 
-Notes on current inspection
 Video: 2021-03-30-11-58-14.mp4
 
 Duration Time: 0:0:17
@@ -19,6 +18,6 @@ Duration Time: 0:1:12
 - exited pipe
 - inspection complete
 
-
 Duration Time: 0:1:39
 - entered pipe again
+

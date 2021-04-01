@@ -45,10 +45,11 @@ class projectPage:
 
         # font
         self.generalFont = tkFont.Font(family="Helventica", size="12")
+        self.largerFont = tkFont.Font(family="Helventica", size="16")
 
         # create components
-        self.notesArea = tk.Text(self.master, font=self.generalFont, padx=4, pady=4, yscrollcommand=set(), borderwidth=1, relief=SOLID)
-        self.infoText = tk.Listbox(self.master, font=self.generalFont, borderwidth=1, relief=SOLID)
+        self.notesArea = tk.Text(self.master, font=self.largerFont, padx=4, pady=4, yscrollcommand=set(), borderwidth=1, relief=SOLID)
+        self.infoText = tk.Listbox(self.master, font=self.largerFont, borderwidth=1, relief=SOLID)
         self.infoText.bind("<Button-1>", self.copyListbox)
 
         #menu components
@@ -79,10 +80,9 @@ class projectPage:
         self.videoFrame = tk.Frame(self.master)
         self.videoDisplay = tk.Label(self.videoFrame, text="Select A Video To Watch", bg="white", borderwidth=1, relief=SOLID)
         self.videoDisplay.bind("<Button-1>", self.pausePlayVideo)
-        self.timeDisplay = tk.Label(self.videoFrame, font=self.generalFont, text="Time: 0:0:0",
+        self.timeDisplay = tk.Label(self.videoFrame, font=self.largerFont, text="Time: 0:0:0",
             padx=4, pady=4, justify=CENTER)
-        self.distanceDisplay = tk.Label(self.videoFrame, font=self.generalFont, text="Distance: 123cm",
-            padx=4, pady=4, justify=CENTER)
+        # self.distanceDisplay = tk.Label(self.videoFrame, font=self.generalFont, text="Distance: 123cm", padx=4, pady=4, justify=CENTER)
 
         # display data
         self.infoText.insert(1, "Date: " + self.time)

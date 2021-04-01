@@ -1,5 +1,6 @@
 from controller import controller
 from uartCommunication import MlinkCommunication
+import time
 
 
 if __name__ == "__main__":
@@ -14,10 +15,12 @@ if __name__ == "__main__":
 
     print("entering loop")
     while(mlink.readMessage() != 0):
-        pass
+        time.sleep(0.2)
 
     while True:
         print("writing controller")
         mlink.sendControllerSpeed(speed = controller.getControllerStickInput())
+        time.sleep(0.5)
         print("reading message")
         mlink.readMessage()
+        time.sleep(0.5)
