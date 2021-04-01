@@ -1,11 +1,13 @@
 import tkinter as tk
-from tkinter.constants import CENTER, INSERT, NE, NW
+from tkinter.constants import CENTER, INSERT, NE, NW, SOLID
 import tkinter.font as tkFont
+from PIL import Image, ImageTk
 import tkinter.messagebox
 import os
 import cv2
+import numpy as np
 import easygui
-import threading
+import time
 from distutils.dir_util import copy_tree
 
 # initializing window
@@ -15,13 +17,17 @@ class projectPage:
         self.dirPath = dirPath
         self.thread = None
         self.videoPath = 0
-        self.videoThread = None
-        self.stopEvent = threading.Event()
         self.capture = None
         self.out = None
+        self.videoTime = 0
+        self.time = time.strftime("%c")
+        self.viewRover = False
+        self.recording = False
+        self.fourcc = None
 
         self.master = master
         self.generalFont = None
+        self.style = None
         self.notesArea = None
         self.infoText = None
         self.menuBar = None
@@ -30,17 +36,20 @@ class projectPage:
         self.videoFrame = None
         self.videoDisplay = None
         self.timeDisplay = None
+        self.pauseVideo = True
 
         # init window
         self.master.title("Tatsy Project")
         self.master.state('zoomed')
         self.master.update_idletasks()
 
+        # font
         self.generalFont = tkFont.Font(family="Helventica", size="12")
 
         # create components
-        self.notesArea = tk.Text(self.master, font=self.generalFont, padx=4, pady=4, yscrollcommand=set())
-        self.infoText = tk.Listbox(self.master, font=self.generalFont)
+        self.notesArea = tk.Text(self.master, font=self.generalFont, padx=4, pady=4, yscrollcommand=set(), borderwidth=1, relief=SOLID)
+        self.infoText = tk.Listbox(self.master, font=self.generalFont, borderwidth=1, relief=SOLID)
+        self.infoText.bind("<Button-1>", self.copyListbox)
 
         #menu components
         self.menuBar = tk.Menu(self.master, font=self.generalFont, tearoff=0)
@@ -58,7 +67,7 @@ class projectPage:
         # video menu
         self.videoMenu = tk.Menu(self.menuBar, tearoff=0, font=self.generalFont)
         self.videoMenu.add_command(label="Record", command=self.recordVideo)
-        self.videoMenu.add_command(label="View Video", command=self.openVideo)
+        self.videoMenu.add_command(label="View Video", command=self.showVideo)
         self.videoMenu.add_command(label="View Rover", command=self.openRoverVideo)
 
         self.videoMenu.add_separator()
@@ -68,18 +77,19 @@ class projectPage:
 
         #video components
         self.videoFrame = tk.Frame(self.master)
-        self.videoDisplay = tk.Label(self.videoFrame, text="Video area", bg="white")
-        self.timeDisplay = tk.Label(self.videoFrame, font=self.generalFont, text="Time: 07:45:33", 
+        self.videoDisplay = tk.Label(self.videoFrame, text="Select A Video To Watch", bg="white", borderwidth=1, relief=SOLID)
+        self.videoDisplay.bind("<Button-1>", self.pausePlayVideo)
+        self.timeDisplay = tk.Label(self.videoFrame, font=self.generalFont, text="Time: 0:0:0",
             padx=4, pady=4, justify=CENTER)
         self.distanceDisplay = tk.Label(self.videoFrame, font=self.generalFont, text="Distance: 123cm",
             padx=4, pady=4, justify=CENTER)
 
         # display data
-        self.infoText.insert(1, "Date: Jan 8, 2021")
-        self.infoText.insert(2, "Project: TestProj")
-        self.infoText.insert(3, "Distance: 123cm")
-        self.infoText.insert(4, "Duration: 12:32")
-        self.infoText.insert(5, "Controls: F-23")
+        self.infoText.insert(1, "Date: " + self.time)
+        self.infoText.insert(2, "Project: " + self.dirPath[self.dirPath.rfind('\\') + 1:])
+        self.infoText.insert(3, "Video: None")
+        self.infoText.insert(4, "Duration: 0:0:0")
+        self.infoText.insert(5, "Rover: Off")
 
         # packing to window
         self.notesArea.place(relheight=0.96, relwidth=0.3, relx=0.02, rely=0.02)
@@ -89,13 +99,14 @@ class projectPage:
         #video frame packing
         self.videoDisplay.place(relheight=1, relwidth=1)
         self.timeDisplay.place(relx=0, rely=0, y=5)
-        self.distanceDisplay.place(relx=0, rely=0, y=40)
+        # self.distanceDisplay.place(relx=0, rely=0, y=40)
 
         # close handling
         self.master.wm_protocol("WM_DELETE_WINDOW", self.onClose)
 
         #setup Project Files
         self.readInNotesFile()
+        self.update()
 
     def onClose(self):
         print("closing")
@@ -111,6 +122,7 @@ class projectPage:
                     pass
         except:
             pass
+        cv2.destroyAllWindows()
         self.master.destroy()
 
     def readInNotesFile(self):
@@ -137,121 +149,89 @@ class projectPage:
         self.nextWindow(newDirPath)
 
     def recordVideo(self):
-        if self.capture == None:
-            return
-        if not self.capture.read()[0]:
-            return
-
-        fourcc = cv2.VideoWriter(*'DIVX')
-        self.out = cv2.VideoWriter(self.dirPath + '\\video\\output.mp4', fourcc, 32.0, (1920, 1080), True)
-        while self.capture.isOpened():
-            ret, frame = self.capture.read()
-            if not ret:
-                break
-            
-            frame = cv2.flip(frame, 0)
-            self.out.write(frame)
-            
-            cv2.imshow('frame', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        
-        self.capture.release()
-        self.out.release()
-        cv2.destroyAllWindows()
+        if not self.recording:
+            self.recording = True
+            self.fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+            path = self.dirPath + '\\video\\' + str(time.strftime("%c")).replace(" ", "-") + '.avi'
+            self.out = cv2.VideoWriter('desktopapp\\projfile\\video\\out.avi', self.fourcc, 32.0, (1920, 1080))
+        else:
+            self.recording = False
+            self.out.release()
+            cv2.destroyAllWindows()
     
-    def openVideo(self):
+    def showVideo(self):
         if self.capture != None:
             self.capture.release()
         videoPath = easygui.fileopenbox(title = "Open video File", default = (self.dirPath + "\\video\\*.mp4"))
         if videoPath != None:
             self.capture = cv2.VideoCapture(videoPath)
-            while self.capture.isOpened():           
-                ret, frame = self.capture.read()
+            self.infoText.delete(2)
+            self.infoText.insert(2, "Video: " + videoPath[videoPath.rfind('\\') + 1:])
+            self.viewRover = False
+    
+    def update(self):
+        # time dislplays
+        self.time = time.strftime("%c")
+        self.infoText.delete(0)
+        self.infoText.insert(0, "Date: " + self.time)
 
-                if not ret:
-                    key =  cv2.waitKey()
-                    if (key == 32) or (key == 107): # space or k
-                        self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                    elif key == 106: # j key goes back 5 sec
-                        frameNum = self.capture.get(cv2.CAP_PROP_POS_FRAMES)
-                        frameRate = self.capture.get(cv2.CAP_PROP_FPS)
-                        newFrameNum = frameNum - frameRate * 5
-                        if newFrameNum < 0:
-                            newFrameNum = 0
-                        self.capture.set(cv2.CAP_PROP_POS_FRAMES, newFrameNum)
-                        cv2.waitKey(1)
-                    elif key & 0xFF == ord('q'):
-                        break
-                else:
-                    cv2.imshow('frame', frame)
-                    key =  cv2.waitKey(1)
-                    if (key == 32) or (key == 107):
-                        cv2.waitKey()
-                    elif key == 106: # j key goes back 5 sec
-                        frameNum = self.capture.get(cv2.CAP_PROP_POS_FRAMES)
-                        frameRate = self.capture.get(cv2.CAP_PROP_FPS)
-                        newFrameNum = frameNum - frameRate * 5
-                        if newFrameNum < 0:
-                            newFrameNum = 0
-                        self.capture.set(cv2.CAP_PROP_POS_FRAMES, newFrameNum)
-                    elif key == 108: # l key go forward 5 sec
-                        frameNum = self.capture.get(cv2.CAP_PROP_POS_FRAMES)
-                        frameRate = self.capture.get(cv2.CAP_PROP_FPS)
-                        newFrameNum = frameNum + frameRate * 5
-                        if newFrameNum > self.capture.get(cv2.CAP_PROP_FRAME_COUNT):
-                            newFrameNum = self.capture.get(cv2.CAP_PROP_FRAME_COUNT)                       
-                        self.capture.set(cv2.CAP_PROP_POS_FRAMES, newFrameNum)
-                    elif key & 0xFF == ord('q'):
-                        break
-            
-            self.capture.release()
-            cv2.destroyAllWindows()
+        firstFrame = True
+        try:
+            self.videoDisplay.imgtk
+            firstFrame = False
+        except:
+            pass
+        if self.capture != None:
+            if (not self.pauseVideo) or firstFrame:
+                ret, frame = self.capture.read()
+                if ret:
+                    #recording
+                    if (self.viewRover) and (self.recording):
+                        self.out.write('frame', frame)
+                    # video time
+                    millis = self.capture.get(cv2.CAP_PROP_POS_MSEC)
+                    seconds=(millis/1000)%60
+                    seconds = int(seconds)
+                    minutes=(millis/(1000*60))%60
+                    minutes = int(minutes)
+                    hours=(millis/(1000*60*60))%24
+                    hours=int(hours)
+                    self.videoTime = "Time: " + str(hours) + ':' + str(minutes) + ':' + str(seconds)
+                    self.timeDisplay.configure(text=self.videoTime)
+                    self.infoText.delete(3)
+                    self.infoText.insert(3, "Duration " + self.videoTime)
+
+                    # video frame
+                    self.videoDisplay.update_idletasks()
+                    dim = (int(self.videoDisplay.winfo_width()), int(self.videoDisplay.winfo_height()))
+                    frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
+                    frame = cv2.flip(frame, 1)
+                    cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+                    img = Image.fromarray(cv2image)
+                    imgtk = ImageTk.PhotoImage(image=img)
+                    self.videoDisplay.imgtk = imgtk
+                    self.videoDisplay.configure(image = imgtk)
+        self.videoDisplay.after(15, self.update)
+    
+    def pausePlayVideo(self, event):
+        if self.pauseVideo:
+            self.pauseVideo = False
+        else:
+            self.pauseVideo = True
+
+    def copyListbox(self, event):
+        self.master.clipboard_clear()
+        selected = self.infoText.get(tk.ANCHOR)
+        self.master.clipboard_append(selected)
      
     def openRoverVideo(self):
         if self.capture != None:
             self.capture.release()
         self.capture = cv2.VideoCapture(0) # Change if wrong camera
-        while self.capture.isOpened():
-            ret, frame = self.capture.read()
-            if not ret:
-                key =  cv2.waitKey()
-                if (key == 32) or (key == 107): # space or k
-                    self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                elif key == 106: # j key goes back 5 sec
-                    frameNum = self.capture.get(cv2.CAP_PROP_POS_FRAMES)
-                    frameRate = self.capture.get(cv2.CAP_PROP_FPS)
-                    newFrameNum = frameNum - frameRate * 5
-                    if newFrameNum < 0:
-                        newFrameNum = 0
-                    self.capture.set(cv2.CAP_PROP_POS_FRAMES, newFrameNum)
-                    cv2.waitKey(1)
-                elif key & 0xFF == ord('q'):
-                    break
-            else:
-                cv2.imshow('frame', frame)
-                key =  cv2.waitKey(1)
-                if (key == 32) or (key == 107):
-                    cv2.waitKey()
-                elif key == 106: # j key goes back 5 sec
-                    frameNum = self.capture.get(cv2.CAP_PROP_POS_FRAMES)
-                    frameRate = self.capture.get(cv2.CAP_PROP_FPS)
-                    newFrameNum = frameNum - frameRate * 5
-                    if newFrameNum < 0:
-                        newFrameNum = 0
-                    self.capture.set(cv2.CAP_PROP_POS_FRAMES, newFrameNum)
-                elif key == 108: # l key go forward 5 sec
-                    frameNum = self.capture.get(cv2.CAP_PROP_POS_FRAMES)
-                    frameRate = self.capture.get(cv2.CAP_PROP_FPS)
-                    newFrameNum = frameNum + frameRate * 5
-                    if newFrameNum > self.capture.get(cv2.CAP_PROP_FRAME_COUNT):
-                        newFrameNum = self.capture.get(cv2.CAP_PROP_FRAME_COUNT)                       
-                    self.capture.set(cv2.CAP_PROP_POS_FRAMES, newFrameNum)
-                elif key & 0xFF == ord('q'):
-                    break
-
-        self.capture.release()
-        cv2.destroyAllWindows()
+        if self.capture.isOpened():
+            self.infoText.delete(2)
+            self.infoText.insert(2, "Video: Rover")
+            self.viewRover = True
     
     def newProject(self):
         dirPath = easygui.diropenbox(title = "New Project Directory")
